@@ -27,7 +27,7 @@ public class EmpresaJrController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
     }
 
-    @PutMapping("adicionar-membro/{idmembro}/{idempresa}")
+    @PatchMapping("/adicionar-membro/{idmembro}/{idempresa}")
     public void addmembro(@PathVariable Long idmembro, @PathVariable Long idempresa) {
         service.adicionarMembro(idmembro, idempresa);
     }
