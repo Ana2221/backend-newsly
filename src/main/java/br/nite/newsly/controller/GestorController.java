@@ -1,8 +1,10 @@
 package br.nite.newsly.controller;
 
 import br.nite.newsly.dto.request.GestorRequestDTO;
+import br.nite.newsly.dto.response.DeduplicacaoResponseDTO;
 import br.nite.newsly.dto.response.GestorResponseDTO;
 import br.nite.newsly.service.GestorService;
+import br.nite.newsly.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import java.util.List;
 public class GestorController {
 
     private final GestorService service;
+    private final UsuarioService usuarioService;
 
     @PostMapping
     public ResponseEntity<GestorResponseDTO> criar(@Valid @RequestBody GestorRequestDTO dto) {
@@ -44,5 +47,19 @@ public class GestorController {
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Remove duplicatas de usuários mantendo o registro mais antigo de cada grupo.
+     *
+     * <p>Critério de duplicata: mesmo nome (case-insensitive).
+     * <br>Critério de "mais recente": maior {@code id} — os registros com id maior
+     * são excluídos; o de menor id (mais antigo) é preservado.
+     *
+     * @return 200 com sumário dos usuários removidos, ou 409 se não há duplicatas.
+     */
+    @DeleteMapping("/deduplicar-usuarios")
+    public ResponseEntity<DeduplicacaoResponseDTO> deduplicarUsuarios() {
+        return ResponseEntity.ok(usuarioService.deduplicarUsuarios());
     }
 }

@@ -9,10 +9,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Noticia pertence a uma EmpresaJr.
- * Pode ter 0..* Comentarios.
- */
 @Entity
 @Table(name = "noticia")
 @Getter
@@ -33,6 +29,9 @@ public class Noticia {
 
     @Column(name = "publicada_em", nullable = false)
     private LocalDateTime publicadaEm;
+
+    @Column(name = "imagem_url", length = 500)
+    private String imagemUrl;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "empresa_id", nullable = false)

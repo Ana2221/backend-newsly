@@ -4,9 +4,11 @@ import br.nite.newsly.dto.request.ResponsavelRequestDTO;
 import br.nite.newsly.dto.response.ResponsavelResponseDTO;
 import br.nite.newsly.entity.Responsavel;
 import br.nite.newsly.enums.TipoUsuario;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ public interface ResponsavelMapper {
     @Mapping(target = "id", ignore = true)
     Responsavel toEntity(ResponsavelRequestDTO dto);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "matricula", ignore = true)
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "id", ignore = true)

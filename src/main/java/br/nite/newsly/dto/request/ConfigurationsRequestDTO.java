@@ -1,19 +1,12 @@
 package br.nite.newsly.dto.request;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Lob;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
+public record ConfigurationsRequestDTO(
 
-public record ConfigurationsRequestDTO (
-
-    @Column(name = "color", length = 20,unique = true)
-    String color,
-
-    @Lob
-    @Column(columnDefinition = "LONGBLOB") 
-    byte[] logo
-){}
+        @Size(max = 20, message = "Cor deve ter no máximo 20 caracteres")
+        @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+                 message = "Cor deve ser um hexadecimal válido (ex: #FF5733)")
+        String color
+) {}

@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:07:19-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:21:49-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
 public class ResponsavelMapperImpl implements ResponsavelMapper {
@@ -64,9 +64,9 @@ public class ResponsavelMapperImpl implements ResponsavelMapper {
 
         Responsavel responsavel = new Responsavel();
 
-        responsavel.setContato( contatoMapper.toEntity( dto.contato() ) );
         responsavel.setNome( dto.nome() );
         responsavel.setSenha( dto.senha() );
+        responsavel.setContato( contatoMapper.toEntity( dto.contato() ) );
         List<Permissao> list = dto.permissoes();
         if ( list != null ) {
             responsavel.setPermissoes( new ArrayList<Permissao>( list ) );
@@ -83,25 +83,23 @@ public class ResponsavelMapperImpl implements ResponsavelMapper {
             return;
         }
 
+        if ( dto.nome() != null ) {
+            entity.setNome( dto.nome() );
+        }
+        if ( dto.senha() != null ) {
+            entity.setSenha( dto.senha() );
+        }
         if ( dto.contato() != null ) {
             if ( entity.getContato() == null ) {
                 entity.setContato( new Contato() );
             }
             contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
-        else {
-            entity.setContato( null );
-        }
-        entity.setNome( dto.nome() );
-        entity.setSenha( dto.senha() );
         if ( entity.getPermissoes() != null ) {
             List<Permissao> list = dto.permissoes();
             if ( list != null ) {
                 entity.getPermissoes().clear();
                 entity.getPermissoes().addAll( list );
-            }
-            else {
-                entity.setPermissoes( null );
             }
         }
         else {

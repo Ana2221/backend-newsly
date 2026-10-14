@@ -4,9 +4,11 @@ import br.nite.newsly.dto.request.ColaboradorRequestDTO;
 import br.nite.newsly.dto.response.ColaboradorResponseDTO;
 import br.nite.newsly.entity.Colaborador;
 import br.nite.newsly.enums.TipoUsuario;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ public interface ColaboradorMapper {
     @Mapping(target = "id", ignore = true)
     Colaborador toEntity(ColaboradorRequestDTO dto);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "matricula", ignore = true)
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "id", ignore = true)

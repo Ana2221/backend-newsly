@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,6 +22,13 @@ public class NoticiaController {
     @PostMapping
     public ResponseEntity<NoticiaResponseDTO> criar(@Valid @RequestBody NoticiaRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
+    }
+
+    @PatchMapping("/{id}/imagem")
+    public ResponseEntity<NoticiaResponseDTO> uploadImagem(
+            @PathVariable Long id,
+            @RequestParam("arquivo") MultipartFile arquivo) {
+        return ResponseEntity.ok(service.uploadImagem(id, arquivo));
     }
 
     @GetMapping("/{id}")

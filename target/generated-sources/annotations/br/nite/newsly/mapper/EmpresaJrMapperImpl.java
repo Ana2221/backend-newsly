@@ -1,6 +1,5 @@
 package br.nite.newsly.mapper;
 
-import br.nite.newsly.dto.request.ConfigurationsRequestDTO;
 import br.nite.newsly.dto.request.EmpresaJrRequestDTO;
 import br.nite.newsly.dto.response.ColaboradorResponseDTO;
 import br.nite.newsly.dto.response.ConfigurationsResponseDTO;
@@ -8,6 +7,7 @@ import br.nite.newsly.dto.response.ContatoResponseDTO;
 import br.nite.newsly.dto.response.DiretoriaResponseDTO;
 import br.nite.newsly.dto.response.EmpresaJrResponseDTO;
 import br.nite.newsly.dto.response.NoticiaResponseDTO;
+import br.nite.newsly.dto.response.ResponsavelResponseDTO;
 import br.nite.newsly.entity.Colaborador;
 import br.nite.newsly.entity.Configurations;
 import br.nite.newsly.entity.Contato;
@@ -15,7 +15,6 @@ import br.nite.newsly.entity.Diretoria;
 import br.nite.newsly.entity.EmpresaJr;
 import br.nite.newsly.entity.Noticia;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.processing.Generated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +22,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:07:20-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:21:48-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
 public class EmpresaJrMapperImpl implements EmpresaJrMapper {
@@ -36,9 +35,11 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
     @Autowired
     private NoticiaMapper noticiaMapper;
     @Autowired
-    private ContatoMapper contatoMapper;
+    private ResponsavelMapper responsavelMapper;
     @Autowired
     private ConfigurationsMapper configurationsMapper;
+    @Autowired
+    private ContatoMapper contatoMapper;
 
     @Override
     public EmpresaJrResponseDTO toResponse(EmpresaJr entity) {
@@ -49,24 +50,28 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
         List<ColaboradorResponseDTO> colaboradores = null;
         List<DiretoriaResponseDTO> diretorias = null;
         List<NoticiaResponseDTO> noticias = null;
+        ResponsavelResponseDTO responsavel = null;
+        ConfigurationsResponseDTO configurations = null;
+        ContatoResponseDTO contato = null;
         Long id = null;
         String nome = null;
         String cnpj = null;
-        ContatoResponseDTO contato = null;
-        ConfigurationsResponseDTO configurations = null;
         String descricao = null;
+        String logoUrl = null;
 
         colaboradores = colaboradorListToColaboradorResponseDTOList( entity.getColaboradores() );
         diretorias = diretoriaListToDiretoriaResponseDTOList( entity.getDiretorias() );
         noticias = noticiaListToNoticiaResponseDTOList( entity.getNoticias() );
+        responsavel = responsavelMapper.toResponse( entity.getResponsavel() );
+        configurations = configurationsMapper.toResponse( entity.getConfigurations() );
+        contato = contatoMapper.toResponse( entity.getContato() );
         id = entity.getId();
         nome = entity.getNome();
         cnpj = entity.getCnpj();
-        contato = contatoMapper.toResponse( entity.getContato() );
-        configurations = configurationsMapper.toResponse( entity.getConfigurations() );
         descricao = entity.getDescricao();
+        logoUrl = entity.getLogoUrl();
 
-        EmpresaJrResponseDTO empresaJrResponseDTO = new EmpresaJrResponseDTO( id, nome, cnpj, colaboradores, diretorias, noticias, contato, configurations, descricao );
+        EmpresaJrResponseDTO empresaJrResponseDTO = new EmpresaJrResponseDTO( id, nome, cnpj, descricao, logoUrl, contato, configurations, responsavel, colaboradores, diretorias, noticias );
 
         return empresaJrResponseDTO;
     }
@@ -79,11 +84,11 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
 
         EmpresaJr empresaJr = new EmpresaJr();
 
-        empresaJr.setCnpj( dto.cnpj() );
-        empresaJr.setConfigurations( configurationsRequestDTOToConfigurations( dto.configurations() ) );
-        empresaJr.setContato( contatoMapper.toEntity( dto.contato() ) );
-        empresaJr.setDescricao( dto.descricao() );
         empresaJr.setNome( dto.nome() );
+        empresaJr.setCnpj( dto.cnpj() );
+        empresaJr.setDescricao( dto.descricao() );
+        empresaJr.setContato( contatoMapper.toEntity( dto.contato() ) );
+        empresaJr.setConfigurations( configurationsMapper.toEntity( dto.configurations() ) );
 
         return empresaJr;
     }
@@ -94,15 +99,14 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
             return;
         }
 
-        entity.setCnpj( dto.cnpj() );
-        if ( dto.configurations() != null ) {
-            if ( entity.getConfigurations() == null ) {
-                entity.setConfigurations( new Configurations() );
-            }
-            configurationsRequestDTOToConfigurations1( dto.configurations(), entity.getConfigurations() );
+        if ( dto.nome() != null ) {
+            entity.setNome( dto.nome() );
         }
-        else {
-            entity.setConfigurations( null );
+        if ( dto.cnpj() != null ) {
+            entity.setCnpj( dto.cnpj() );
+        }
+        if ( dto.descricao() != null ) {
+            entity.setDescricao( dto.descricao() );
         }
         if ( dto.contato() != null ) {
             if ( entity.getContato() == null ) {
@@ -110,11 +114,12 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
             }
             contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
-        else {
-            entity.setContato( null );
+        if ( dto.configurations() != null ) {
+            if ( entity.getConfigurations() == null ) {
+                entity.setConfigurations( new Configurations() );
+            }
+            configurationsMapper.updateEntity( dto.configurations(), entity.getConfigurations() );
         }
-        entity.setDescricao( dto.descricao() );
-        entity.setNome( dto.nome() );
     }
 
     protected List<ColaboradorResponseDTO> colaboradorListToColaboradorResponseDTOList(List<Colaborador> list) {
@@ -154,36 +159,5 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
         }
 
         return list1;
-    }
-
-    protected Configurations configurationsRequestDTOToConfigurations(ConfigurationsRequestDTO configurationsRequestDTO) {
-        if ( configurationsRequestDTO == null ) {
-            return null;
-        }
-
-        Configurations configurations = new Configurations();
-
-        configurations.setColor( configurationsRequestDTO.color() );
-        byte[] logo = configurationsRequestDTO.logo();
-        if ( logo != null ) {
-            configurations.setLogo( Arrays.copyOf( logo, logo.length ) );
-        }
-
-        return configurations;
-    }
-
-    protected void configurationsRequestDTOToConfigurations1(ConfigurationsRequestDTO configurationsRequestDTO, Configurations mappingTarget) {
-        if ( configurationsRequestDTO == null ) {
-            return;
-        }
-
-        mappingTarget.setColor( configurationsRequestDTO.color() );
-        byte[] logo = configurationsRequestDTO.logo();
-        if ( logo != null ) {
-            mappingTarget.setLogo( Arrays.copyOf( logo, logo.length ) );
-        }
-        else {
-            mappingTarget.setLogo( null );
-        }
     }
 }

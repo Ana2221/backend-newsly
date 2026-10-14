@@ -27,18 +27,18 @@ class Colaborador {
 
 class Gestor {
     - UUID matricula
-    - List<Permicao> permissoes
+    - List<Permissao> permissoes
 }
 
 class Responsavel {
     - UUID matricula
-    - List<Permicao> permissoes
+    - List<Permissao> permissoes
 }
 
 class Diretor {
     - Colaborador colaborador
     - Funcao funcao
-    - List<Permicao> permissoes
+    - List<Permissao> permissoes
     - Diretoria diretoria
 }
 
@@ -50,6 +50,7 @@ class Funcao {
 class Diretoria {
     - Long id
     - Date criadaEm
+    - List<Diretor> diretores
 }
 
 class EmpresaJr {
@@ -71,7 +72,7 @@ class Comentario {
     - Date publicadaEm
 }
 
-enum Permicao {
+enum Permissao {
     LEITOR
     ESCRITOR
 }
@@ -82,6 +83,7 @@ enum Permicao {
 
 class UsuarioController {
     + criar()
+    + login()
     + buscarPorId()
     + buscarTodos()
     + atualizar()
@@ -150,10 +152,20 @@ class ComentarioController {
 
 class UsuarioService {
     + criar()
+    + login()
     + buscarPorId()
     + buscarTodos()
     + atualizar()
     + excluir()
+}
+
+class UsuarioAdapterService {
+    + criar()
+}
+
+class UsuarioOutputAdapterService {
+    + adaptar()
+    + adaptarParaLogin()
 }
 
 class ColaboradorService {
@@ -221,6 +233,8 @@ interface UsuarioRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findByContatoEmail()
+    + existsByContatoEmail()
 }
 
 interface ColaboradorRepository {
@@ -228,6 +242,8 @@ interface ColaboradorRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findByMatricula()
+    + findAllByEmpresaId()
 }
 
 interface EmpresaJrRepository {
@@ -235,6 +251,8 @@ interface EmpresaJrRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findByCnpj()
+    + existsByCnpj()
 }
 
 interface DiretoriaRepository {
@@ -242,6 +260,7 @@ interface DiretoriaRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findAllByEmpresaId()
 }
 
 interface DiretorRepository {
@@ -249,6 +268,9 @@ interface DiretorRepository {
     + findById()
     + findAll()
     + deleteById()
+    + existsByColaboradorId()
+    + findAllByDiretoriaId()
+    + findByColaboradorId()
 }
 
 interface FuncaoRepository {
@@ -256,6 +278,8 @@ interface FuncaoRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findByNome()
+    + existsByNome()
 }
 
 interface NoticiaRepository {
@@ -263,6 +287,7 @@ interface NoticiaRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findAllByEmpresaId()
 }
 
 interface ComentarioRepository {
@@ -270,6 +295,9 @@ interface ComentarioRepository {
     + findById()
     + findAll()
     + deleteById()
+    + findAllByNoticiaId()
+    + findAllByNoticiaIdAndComentarioPaiIsNull()
+    + findAllByComentarioPaiId()
 }
 
 ' =========================
@@ -277,6 +305,8 @@ interface ComentarioRepository {
 ' =========================
 
 UsuarioController --> UsuarioService
+UsuarioController --> UsuarioAdapterService
+UsuarioController --> UsuarioOutputAdapterService
 UsuarioService --> UsuarioRepository
 UsuarioRepository --> Usuario
 
@@ -320,7 +350,7 @@ Usuario <|-- Responsavel
 
 Colaborador "1" -- "0..1" Diretor
 Diretor "1" -- "1" Funcao
-Diretor "1" -- "1" Diretoria
+Diretoria "1" -- "0..*" Diretor
 
 Responsavel "1" -- "1" EmpresaJr
 EmpresaJr "1" -- "1..*" Diretoria
@@ -331,4 +361,4 @@ Noticia "1" -- "0..*" Comentario
 
 Comentario "1" -- "0..*" Comentario : respostas
 
-@endumll
+@enduml

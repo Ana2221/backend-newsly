@@ -25,6 +25,9 @@ public class Diretoria {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "nome")
+    private String nome;
+
     @Column(name = "criada_em", nullable = false)
     private LocalDate criadaEm;
 

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:07:20-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:21:49-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
 public class NoticiaMapperImpl implements NoticiaMapper {
@@ -28,6 +28,7 @@ public class NoticiaMapperImpl implements NoticiaMapper {
         String titulo = null;
         String conteudo = null;
         LocalDateTime publicadaEm = null;
+        String imagemUrl = null;
 
         empresaId = entityEmpresaId( entity );
         empresaNome = entityEmpresaNome( entity );
@@ -35,8 +36,9 @@ public class NoticiaMapperImpl implements NoticiaMapper {
         titulo = entity.getTitulo();
         conteudo = entity.getConteudo();
         publicadaEm = entity.getPublicadaEm();
+        imagemUrl = entity.getImagemUrl();
 
-        NoticiaResponseDTO noticiaResponseDTO = new NoticiaResponseDTO( id, titulo, conteudo, publicadaEm, empresaId, empresaNome );
+        NoticiaResponseDTO noticiaResponseDTO = new NoticiaResponseDTO( id, titulo, conteudo, publicadaEm, imagemUrl, empresaId, empresaNome );
 
         return noticiaResponseDTO;
     }
@@ -49,9 +51,9 @@ public class NoticiaMapperImpl implements NoticiaMapper {
 
         Noticia noticia = new Noticia();
 
+        noticia.setTitulo( dto.titulo() );
         noticia.setConteudo( dto.conteudo() );
         noticia.setPublicadaEm( dto.publicadaEm() );
-        noticia.setTitulo( dto.titulo() );
 
         return noticia;
     }
@@ -62,9 +64,9 @@ public class NoticiaMapperImpl implements NoticiaMapper {
             return;
         }
 
+        entity.setTitulo( dto.titulo() );
         entity.setConteudo( dto.conteudo() );
         entity.setPublicadaEm( dto.publicadaEm() );
-        entity.setTitulo( dto.titulo() );
     }
 
     private Long entityEmpresaId(Noticia noticia) {

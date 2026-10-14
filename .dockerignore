@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.vscode
+**/target
+uploads
+**/uploads
+*.iml
+.env
+.env.*
+!.env.example

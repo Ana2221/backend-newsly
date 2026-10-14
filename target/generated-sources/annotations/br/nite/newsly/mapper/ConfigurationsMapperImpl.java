@@ -1,15 +1,15 @@
 package br.nite.newsly.mapper;
 
+import br.nite.newsly.dto.request.ConfigurationsRequestDTO;
 import br.nite.newsly.dto.response.ConfigurationsResponseDTO;
 import br.nite.newsly.entity.Configurations;
-import java.util.Arrays;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:07:19-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:21:46-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
 public class ConfigurationsMapperImpl implements ConfigurationsMapper {
@@ -21,16 +21,35 @@ public class ConfigurationsMapperImpl implements ConfigurationsMapper {
         }
 
         String color = null;
-        byte[] logo = null;
 
         color = entity.getColor();
-        byte[] logo1 = entity.getLogo();
-        if ( logo1 != null ) {
-            logo = Arrays.copyOf( logo1, logo1.length );
-        }
 
-        ConfigurationsResponseDTO configurationsResponseDTO = new ConfigurationsResponseDTO( color, logo );
+        ConfigurationsResponseDTO configurationsResponseDTO = new ConfigurationsResponseDTO( color );
 
         return configurationsResponseDTO;
+    }
+
+    @Override
+    public Configurations toEntity(ConfigurationsRequestDTO dto) {
+        if ( dto == null ) {
+            return null;
+        }
+
+        Configurations configurations = new Configurations();
+
+        configurations.setColor( dto.color() );
+
+        return configurations;
+    }
+
+    @Override
+    public void updateEntity(ConfigurationsRequestDTO dto, Configurations entity) {
+        if ( dto == null ) {
+            return;
+        }
+
+        if ( dto.color() != null ) {
+            entity.setColor( dto.color() );
+        }
     }
 }

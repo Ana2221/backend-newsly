@@ -5,6 +5,7 @@ import java.util.List;
 
 public record DiretoriaResponseDTO(
         Long id,
+        String nome,
         LocalDate criadaEm,
         Long empresaId,
         String empresaNome,

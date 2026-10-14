@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:09:16-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:38:49-0300",
+    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260826-1225, environment: Java 21.0.12.1 (Eclipse Adoptium)"
 )
 @Component
 public class DiretoriaMapperImpl implements DiretoriaMapper {
@@ -34,15 +34,17 @@ public class DiretoriaMapperImpl implements DiretoriaMapper {
         String empresaNome = null;
         List<DiretorResumoResponseDTO> diretores = null;
         Long id = null;
+        String nome = null;
         LocalDate criadaEm = null;
 
         empresaId = entityEmpresaId( entity );
         empresaNome = entityEmpresaNome( entity );
         diretores = diretorListToDiretorResumoResponseDTOList( entity.getDiretores() );
         id = entity.getId();
+        nome = entity.getNome();
         criadaEm = entity.getCriadaEm();
 
-        DiretoriaResponseDTO diretoriaResponseDTO = new DiretoriaResponseDTO( id, criadaEm, empresaId, empresaNome, diretores );
+        DiretoriaResponseDTO diretoriaResponseDTO = new DiretoriaResponseDTO( id, nome, criadaEm, empresaId, empresaNome, diretores );
 
         return diretoriaResponseDTO;
     }
@@ -55,6 +57,7 @@ public class DiretoriaMapperImpl implements DiretoriaMapper {
 
         Diretoria diretoria = new Diretoria();
 
+        diretoria.setNome( dto.nome() );
         diretoria.setCriadaEm( dto.criadaEm() );
 
         return diretoria;
@@ -66,6 +69,7 @@ public class DiretoriaMapperImpl implements DiretoriaMapper {
             return;
         }
 
+        entity.setNome( dto.nome() );
         entity.setCriadaEm( dto.criadaEm() );
     }
 

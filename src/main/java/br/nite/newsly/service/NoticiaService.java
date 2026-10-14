@@ -7,9 +7,11 @@ import br.nite.newsly.entity.Noticia;
 import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.mapper.NoticiaMapper;
 import br.nite.newsly.repository.NoticiaRepository;
+import br.nite.newsly.service.storage.ArmazenamentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,12 +22,27 @@ public class NoticiaService {
     private final NoticiaRepository repository;
     private final NoticiaMapper mapper;
     private final EmpresaJrService empresaJrService;
+    private final ArmazenamentoService armazenamentoService;
 
     @Transactional
     public NoticiaResponseDTO criar(NoticiaRequestDTO dto) {
         EmpresaJr empresa = empresaJrService.buscarEntidade(dto.empresaId());
         Noticia entity = mapper.toEntity(dto);
         entity.setEmpresa(empresa);
+        return mapper.toResponse(repository.save(entity));
+    }
+
+    @Transactional
+    public NoticiaResponseDTO uploadImagem(Long id, MultipartFile arquivo) {
+        Noticia entity = buscarEntidade(id);
+
+        if (entity.getImagemUrl() != null) {
+            armazenamentoService.remover(entity.getImagemUrl());
+        }
+
+        String caminho = armazenamentoService.salvar(arquivo, "noticias");
+        entity.setImagemUrl(caminho);
+
         return mapper.toResponse(repository.save(entity));
     }
 
@@ -52,7 +69,10 @@ public class NoticiaService {
 
     @Transactional
     public void excluir(Long id) {
-        buscarEntidade(id);
+        Noticia entity = buscarEntidade(id);
+        if (entity.getImagemUrl() != null) {
+            armazenamentoService.remover(entity.getImagemUrl());
+        }
         repository.deleteById(id);
     }
 

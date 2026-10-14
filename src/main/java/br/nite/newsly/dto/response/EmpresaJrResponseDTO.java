@@ -6,10 +6,12 @@ public record EmpresaJrResponseDTO(
         Long id,
         String nome,
         String cnpj,
-        List<ColaboradorResponseDTO> colaboradores,
-        List<DiretoriaResponseDTO> diretorias,
-        List<NoticiaResponseDTO> noticias,
+        String descricao,
+        String logoUrl,
         ContatoResponseDTO contato,
         ConfigurationsResponseDTO configurations,
-        String descricao
+        ResponsavelResponseDTO responsavel,
+        List<ColaboradorResponseDTO> colaboradores,
+        List<DiretoriaResponseDTO> diretorias,
+        List<NoticiaResponseDTO> noticias
 ) {}

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:07:19-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:21:48-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
 public class ColaboradorMapperImpl implements ColaboradorMapper {
@@ -58,9 +58,9 @@ public class ColaboradorMapperImpl implements ColaboradorMapper {
 
         Colaborador colaborador = new Colaborador();
 
-        colaborador.setContato( contatoMapper.toEntity( dto.contato() ) );
         colaborador.setNome( dto.nome() );
         colaborador.setSenha( dto.senha() );
+        colaborador.setContato( contatoMapper.toEntity( dto.contato() ) );
         colaborador.setAtividade( dto.atividade() );
 
         colaborador.setMatricula( UUID.randomUUID() );
@@ -74,18 +74,21 @@ public class ColaboradorMapperImpl implements ColaboradorMapper {
             return;
         }
 
+        if ( dto.nome() != null ) {
+            entity.setNome( dto.nome() );
+        }
+        if ( dto.senha() != null ) {
+            entity.setSenha( dto.senha() );
+        }
         if ( dto.contato() != null ) {
             if ( entity.getContato() == null ) {
                 entity.setContato( new Contato() );
             }
             contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
-        else {
-            entity.setContato( null );
+        if ( dto.atividade() != null ) {
+            entity.setAtividade( dto.atividade() );
         }
-        entity.setNome( dto.nome() );
-        entity.setSenha( dto.senha() );
-        entity.setAtividade( dto.atividade() );
     }
 
     private Long entityEmpresaId(Colaborador colaborador) {

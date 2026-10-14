@@ -8,12 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-
 
 @RestController
 @RequestMapping("/empresas")
@@ -27,10 +24,18 @@ public class EmpresaJrController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
     }
 
+    @PatchMapping("/{id}/logo")
+    public ResponseEntity<EmpresaJrResponseDTO> uploadLogo(
+            @PathVariable Long id,
+            @RequestParam("arquivo") MultipartFile arquivo) {
+        return ResponseEntity.ok(service.uploadLogo(id, arquivo));
+    }
+
     @PatchMapping("/adicionar-membro/{idmembro}/{idempresa}")
     public void addmembro(@PathVariable Long idmembro, @PathVariable Long idempresa) {
         service.adicionarMembro(idmembro, idempresa);
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<EmpresaJrResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));

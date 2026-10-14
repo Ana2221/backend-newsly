@@ -8,13 +8,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Entidade central do sistema.
- * Possui 1..* Diretorias, 0..* Colaboradores e 0..* Noticias.
- *
- * Os relacionamentos @OneToMany são mapeados pelo lado filho
- * para evitar coleções desnecessárias em memória quando não utilizadas.
- */
 @Entity
 @Table(name = "empresa_jr")
 @Getter
@@ -27,7 +20,6 @@ public class EmpresaJr {
     @Column(name = "id")
     private Long id;
 
-
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
 
@@ -36,6 +28,9 @@ public class EmpresaJr {
 
     @Column(name = "descricao", length = 500)
     private String descricao;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
 
     @Embedded
     private Contato contato;

@@ -7,6 +7,7 @@ public record NoticiaResponseDTO(
         String titulo,
         String conteudo,
         LocalDateTime publicadaEm,
+        String imagemUrl,
         Long empresaId,
         String empresaNome
 ) {}

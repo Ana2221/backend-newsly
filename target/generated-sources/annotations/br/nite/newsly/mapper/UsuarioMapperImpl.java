@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-31T10:07:20-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-10-12T16:21:46-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
 public class UsuarioMapperImpl implements UsuarioMapper {
@@ -47,9 +47,9 @@ public class UsuarioMapperImpl implements UsuarioMapper {
 
         Usuario usuario = new Usuario();
 
-        usuario.setContato( contatoMapper.toEntity( dto.contato() ) );
         usuario.setNome( dto.nome() );
         usuario.setSenha( dto.senha() );
+        usuario.setContato( contatoMapper.toEntity( dto.contato() ) );
 
         return usuario;
     }
@@ -60,16 +60,17 @@ public class UsuarioMapperImpl implements UsuarioMapper {
             return;
         }
 
+        if ( dto.nome() != null ) {
+            entity.setNome( dto.nome() );
+        }
+        if ( dto.senha() != null ) {
+            entity.setSenha( dto.senha() );
+        }
         if ( dto.contato() != null ) {
             if ( entity.getContato() == null ) {
                 entity.setContato( new Contato() );
             }
             contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
-        else {
-            entity.setContato( null );
-        }
-        entity.setNome( dto.nome() );
-        entity.setSenha( dto.senha() );
     }
 }

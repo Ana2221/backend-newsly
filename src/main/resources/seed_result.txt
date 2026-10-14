@@ -1,0 +1,13 @@
+﻿mysql.exe : mysql: [Warning] Using a password on the command line interface 
+can be insecure.
+No C:\Users\Kassia\OneDrive\Documentos\backend-newsly\run_seed.ps1:9 
+caractere:36
++ ... seed -Raw | & $mysql -u root "-proot" newsly_db --default-character-s ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure. 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ERROR 1062 (23000) at line 129: Duplicate entry '1' for key 
+'diretor.UK_j9iemx1nqt419dto5orkj5d11'
+EXIT:1

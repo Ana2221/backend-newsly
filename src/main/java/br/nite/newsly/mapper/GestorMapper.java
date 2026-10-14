@@ -4,9 +4,11 @@ import br.nite.newsly.dto.request.GestorRequestDTO;
 import br.nite.newsly.dto.response.GestorResponseDTO;
 import br.nite.newsly.entity.Gestor;
 import br.nite.newsly.enums.TipoUsuario;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ public interface GestorMapper {
     @Mapping(target = "id", ignore = true)
     Gestor toEntity(GestorRequestDTO dto);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "matricula", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateEntity(GestorRequestDTO dto, @MappingTarget Gestor entity);
