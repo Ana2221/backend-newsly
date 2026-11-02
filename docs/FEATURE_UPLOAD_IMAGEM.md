@@ -62,12 +62,12 @@ O Spring serve a pasta `uploads` como recurso estático via `StaticResourceConfi
 Basta usar o caminho retornado pela API diretamente como `src`:
 
 ```html
-<img src="http://localhost:8080/uploads/noticias/uuid.jpg" />
+<img src="https://backend-newsly.onrender.com/uploads/noticias/uuid.jpg" />
 ```
 
 Ou em React/Vue:
 ```jsx
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://backend-newsly.onrender.com";
 <img src={`${BASE_URL}${noticia.imagemUrl}`} />
 <img src={`${BASE_URL}${empresa.logoUrl}`} />
 ```
@@ -105,7 +105,7 @@ Content-Type: multipart/form-data
 
 Para renderizar:
 ```jsx
-<img src={`http://localhost:8080${noticia.imagemUrl}`} />
+<img src={`https://backend-newsly.onrender.com${noticia.imagemUrl}`} />
 ```
 
 **Erros:**
@@ -139,7 +139,7 @@ Content-Type: multipart/form-data
 
 Para renderizar:
 ```jsx
-<img src={`http://localhost:8080${empresa.logoUrl}`} />
+<img src={`https://backend-newsly.onrender.com${empresa.logoUrl}`} />
 ```
 
 **Erros:**
@@ -163,13 +163,13 @@ const formData = new FormData();
 formData.append('arquivo', file);
 
 // Upload imagem de notícia
-fetch('http://localhost:8080/noticias/1/imagem', {
+fetch('https://backend-newsly.onrender.com/noticias/1/imagem', {
   method: 'PATCH',
   body: formData
 });
 
 // Upload logo de empresa
-fetch('http://localhost:8080/empresas/1/logo', {
+fetch('https://backend-newsly.onrender.com/empresas/1/logo', {
   method: 'PATCH',
   body: formData
 });

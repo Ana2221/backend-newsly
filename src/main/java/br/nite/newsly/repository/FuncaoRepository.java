@@ -12,4 +12,10 @@ public interface FuncaoRepository extends JpaRepository<Funcao, Long> {
     Optional<Funcao> findByNome(String nome);
 
     boolean existsByNome(String nome);
+
+    java.util.List<Funcao> findAllByEmpresaId(Long empresaId);
+
+    boolean existsByIdAndEmpresaId(Long id, Long empresaId);
+
+    boolean existsByNomeAndEmpresaId(String nome, Long empresaId);
 }

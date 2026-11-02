@@ -8,6 +8,9 @@ import br.nite.newsly.dto.request.UsuarioRequestDTO;
 import br.nite.newsly.dto.response.CriarUsuarioResponseDTO;
 import br.nite.newsly.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,14 @@ public class UsuarioAdapterService {
 
     @Transactional
     public CriarUsuarioResponseDTO criar(CriarUsuarioRequestDTO dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean administrador = authentication != null && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        if (dto.tipo() != br.nite.newsly.enums.TipoUsuario.USUARIO && !administrador) {
+            throw new AccessDeniedException("Somente um administrador pode criar perfis privilegiados.");
+        }
+
         return switch (dto.tipo()) {
             case USUARIO -> {
                 var request = new UsuarioRequestDTO(

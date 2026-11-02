@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-10-12T16:21:49-0300",
+    date = "2026-11-02T17:53:45-0300",
     comments = "version: 1.6.3, compiler: javac, environment: Java 26 (Oracle Corporation)"
 )
 @Component
@@ -28,6 +28,7 @@ public class NoticiaMapperImpl implements NoticiaMapper {
         String titulo = null;
         String conteudo = null;
         LocalDateTime publicadaEm = null;
+        boolean aprovada = false;
         String imagemUrl = null;
 
         empresaId = entityEmpresaId( entity );
@@ -36,9 +37,10 @@ public class NoticiaMapperImpl implements NoticiaMapper {
         titulo = entity.getTitulo();
         conteudo = entity.getConteudo();
         publicadaEm = entity.getPublicadaEm();
+        aprovada = entity.isAprovada();
         imagemUrl = entity.getImagemUrl();
 
-        NoticiaResponseDTO noticiaResponseDTO = new NoticiaResponseDTO( id, titulo, conteudo, publicadaEm, imagemUrl, empresaId, empresaNome );
+        NoticiaResponseDTO noticiaResponseDTO = new NoticiaResponseDTO( id, titulo, conteudo, publicadaEm, aprovada, imagemUrl, empresaId, empresaNome );
 
         return noticiaResponseDTO;
     }

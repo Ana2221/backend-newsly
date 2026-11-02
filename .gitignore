@@ -1,0 +1,21 @@
+# Maven
+/target/
+
+# Uploaded files and runtime logs
+/uploads/
+/logs/
+*.log
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db

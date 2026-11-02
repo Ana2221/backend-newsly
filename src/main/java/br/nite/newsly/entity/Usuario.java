@@ -32,6 +32,9 @@ public class Usuario {
     @Column(name = "senha", nullable = false, length = 255)
     private String senha;
 
+    @Column(name = "administrador", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
+    private boolean administrador;
+
     @Embedded
     private Contato contato;
 }

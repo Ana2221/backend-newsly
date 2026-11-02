@@ -1,4 +1,6 @@
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\configuration\CorsConfiguration.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\configuration\SecurityConfiguration.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\configuration\SolicitacaoSchemaMigration.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\configuration\StaticResourceConfiguration.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\ColaboradorController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\ComentarioController.java
@@ -40,6 +42,7 @@ C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\EmpresaJrResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\FuncaoResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\GestorResponseDTO.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\LoginResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\NoticiaResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\ResponsavelResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\SolicitacaoResponseDTO.java
@@ -63,6 +66,7 @@ C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\enums\TipoUsuario.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\exception\BusinessException.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\exception\ErrorResponse.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\exception\ExternalValidationException.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\exception\GlobalExceptionHandler.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\exception\ResourceNotFoundException.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\mapper\ColaboradorMapper.java
@@ -90,6 +94,10 @@ C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\repository\ResponsavelRepository.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\repository\SolicitacaoRepository.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\repository\UsuarioRepository.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\security\SecurityAccess.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\service\AuthenticationService.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\service\BootstrapAdminService.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\service\CnpjValidationService.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\service\ColaboradorService.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\service\ComentarioService.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\service\DiretoriaService.java

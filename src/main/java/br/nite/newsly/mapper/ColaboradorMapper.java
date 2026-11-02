@@ -22,11 +22,13 @@ public interface ColaboradorMapper {
     @Mapping(target = "matricula", expression = "java(UUID.randomUUID())")
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "administrador", ignore = true)
     Colaborador toEntity(ColaboradorRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "matricula", ignore = true)
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "administrador", ignore = true)
     void updateEntity(ColaboradorRequestDTO dto, @MappingTarget Colaborador entity);
 }

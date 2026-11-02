@@ -9,6 +9,7 @@ import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.mapper.ResponsavelMapper;
 import br.nite.newsly.repository.ResponsavelRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class ResponsavelService {
     private final ResponsavelRepository repository;
     private final ResponsavelMapper mapper;
     private final EmpresaJrService empresaJrService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public ResponsavelResponseDTO criar(ResponsavelRequestDTO dto) {
@@ -29,6 +31,7 @@ public class ResponsavelService {
         }
 
         Responsavel entity = mapper.toEntity(dto);
+        entity.setSenha(passwordEncoder.encode(dto.senha()));
 
         if (dto.empresaId() != null) {
             EmpresaJr empresa = empresaJrService.buscarEntidade(dto.empresaId());
@@ -54,6 +57,7 @@ public class ResponsavelService {
     public ResponsavelResponseDTO atualizar(Long id, ResponsavelRequestDTO dto) {
         Responsavel entity = buscarEntidade(id);
         mapper.updateEntity(dto, entity);
+        entity.setSenha(passwordEncoder.encode(dto.senha()));
 
         if (dto.empresaId() != null) {
             EmpresaJr empresa = empresaJrService.buscarEntidade(dto.empresaId());

@@ -16,6 +16,7 @@ br\nite\newsly\repository\UsuarioRepository.class
 br\nite\newsly\dto\response\NoticiaResponseDTO.class
 br\nite\newsly\dto\request\UsuarioRequestDTO.class
 br\nite\newsly\dto\response\GestorResponseDTO.class
+br\nite\newsly\exception\ExternalValidationException.class
 br\nite\newsly\dto\response\ResponsavelResponseDTO.class
 br\nite\newsly\mapper\NoticiaMapper.class
 br\nite\newsly\dto\response\SolicitacaoResponseDTO.class
@@ -25,6 +26,7 @@ br\nite\newsly\mapper\EmpresaJrMapper.class
 br\nite\newsly\dto\request\ConfigurationsRequestDTO.class
 br\nite\newsly\dto\response\UsuarioResponseDTO.class
 br\nite\newsly\controller\SolicitacaoController.class
+br\nite\newsly\configuration\SecurityConfiguration.class
 br\nite\newsly\repository\NoticiaRepository.class
 br\nite\newsly\dto\response\DiretorResumoResponseDTO.class
 br\nite\newsly\controller\DiretorController.class
@@ -44,7 +46,10 @@ br\nite\newsly\controller\GestorController.class
 br\nite\newsly\entity\Funcao.class
 br\nite\newsly\service\UsuarioOutputAdapterService.class
 br\nite\newsly\dto\response\ConfigurationsResponseDTO.class
+br\nite\newsly\dto\response\DeduplicacaoResponseDTO$UsuarioRemovidoDTO.class
 br\nite\newsly\repository\FuncaoRepository.class
+br\nite\newsly\security\SecurityAccess.class
+br\nite\newsly\service\AuthenticationService.class
 br\nite\newsly\repository\DiretoriaRepository.class
 br\nite\newsly\dto\request\CriarUsuarioRequestDTO.class
 br\nite\newsly\configuration\CorsConfiguration.class
@@ -99,17 +104,20 @@ br\nite\newsly\dto\request\ResponderSolicitacaoRequestDTO.class
 br\nite\newsly\dto\response\CriarUsuarioResponseDTO.class
 br\nite\newsly\service\FuncaoService.class
 br\nite\newsly\dto\request\SolicitacaoRequestDTO.class
+br\nite\newsly\service\CnpjValidationService.class
 br\nite\newsly\service\storage\ArmazenamentoLocalService.class
 br\nite\newsly\mapper\ConfigurationsMapperImpl.class
 br\nite\newsly\entity\Comentario.class
 br\nite\newsly\exception\ErrorResponse$FieldError.class
 br\nite\newsly\dto\response\ContatoResponseDTO.class
 br\nite\newsly\mapper\ComentarioMapper.class
+br\nite\newsly\service\BootstrapAdminService.class
 br\nite\newsly\mapper\DiretorResumoMapperImpl.class
 br\nite\newsly\controller\ResponsavelController.class
 br\nite\newsly\controller\ColaboradorController.class
 br\nite\newsly\service\ColaboradorService.class
 br\nite\newsly\mapper\ConfigurationsMapper.class
+br\nite\newsly\dto\response\LoginResponseDTO$AuthenticatedUserDTO.class
 br\nite\newsly\entity\Usuario.class
 br\nite\newsly\controller\ComentarioController.class
 br\nite\newsly\dto\response\ComentarioResponseDTO.class
@@ -119,3 +127,5 @@ br\nite\newsly\mapper\GestorMapperImpl.class
 br\nite\newsly\service\GestorService.class
 br\nite\newsly\mapper\DiretoriaMapper.class
 br\nite\newsly\mapper\ResponsavelMapperImpl.class
+br\nite\newsly\dto\response\DeduplicacaoResponseDTO.class
+br\nite\newsly\dto\response\LoginResponseDTO.class

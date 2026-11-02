@@ -21,4 +21,6 @@ public interface DiretoriaRepository extends JpaRepository<Diretoria, Long> {
 
     @EntityGraph(attributePaths = {"empresa", "diretores", "diretores.colaborador", "diretores.funcao"})
     List<Diretoria> findAllByEmpresaId(Long empresaId);
+
+    boolean existsByIdAndEmpresaId(Long id, Long empresaId);
 }

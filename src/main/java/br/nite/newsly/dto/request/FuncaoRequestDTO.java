@@ -10,5 +10,7 @@ public record FuncaoRequestDTO(
         String nome,
 
         @Size(max = 500, message = "Descrição deve ter no máximo 500 caracteres")
-        String descricao
+        String descricao,
+
+        Long empresaId
 ) {}

@@ -14,6 +14,8 @@ import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.mapper.UsuarioMapper;
 import br.nite.newsly.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final UsuarioMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UsuarioResponseDTO criar(UsuarioRequestDTO dto) {
@@ -34,20 +37,25 @@ public class UsuarioService {
             throw new BusinessException("Já existe um usuário com o e-mail: " + dto.contato().email());
         }
         Usuario entity = mapper.toEntity(dto);
+        entity.setSenha(passwordEncoder.encode(dto.senha()));
         return mapper.toResponse(repository.save(entity));
     }
 
-    /**
-     * Autentica o usuário pelo e-mail e senha.
-     * Retorna a entidade bruta para que o OutputAdapter monte o response tipado.
-     */
-    @Transactional(readOnly = true)
+    @Transactional
     public Usuario login(LoginRequestDTO dto) {
         Usuario usuario = repository.findByContatoEmail(dto.email())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "e-mail", dto.email()));
+                .orElseThrow(() -> new BadCredentialsException("E-mail ou senha inválidos."));
 
-        if (!usuario.getSenha().equals(dto.senha())) {
-            throw new BusinessException("E-mail ou senha inválidos.");
+        String storedPassword = usuario.getSenha();
+        if (isEncodedPassword(storedPassword)) {
+            if (!passwordEncoder.matches(dto.senha(), storedPassword)) {
+                throw new BadCredentialsException("E-mail ou senha inválidos.");
+            }
+        } else if (storedPassword.equals(dto.senha())) {
+            usuario.setSenha(passwordEncoder.encode(dto.senha()));
+            repository.save(usuario);
+        } else {
+            throw new BadCredentialsException("E-mail ou senha inválidos.");
         }
 
         return usuario;
@@ -154,5 +162,9 @@ public class UsuarioService {
     public Usuario buscarEntidade(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário", id));
+    }
+
+    private boolean isEncodedPassword(String password) {
+        return password.startsWith("{pbkdf2}");
     }
 }

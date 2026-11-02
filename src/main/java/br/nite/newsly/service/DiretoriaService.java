@@ -21,6 +21,7 @@ import br.nite.newsly.repository.ColaboradorRepository;
 import br.nite.newsly.repository.DiretorRepository;
 import br.nite.newsly.repository.DiretoriaRepository;
 import br.nite.newsly.repository.FuncaoRepository;
+import br.nite.newsly.security.SecurityAccess;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,9 +34,11 @@ public class DiretoriaService {
     private final DiretorRepository diretorRepository;
     private final ColaboradorRepository colaboradorRepository;
     private final FuncaoRepository funcaoRepository;
+    private final SecurityAccess securityAccess;
 
     @Transactional
     public DiretoriaResponseDTO criar(DiretoriaRequestDTO dto) {
+        requireOwnCompanyWhenResponsible(dto.empresaId());
         EmpresaJr empresa = empresaJrService.buscarEntidade(dto.empresaId());
 
         Diretoria entity = mapper.toEntity(dto);
@@ -58,6 +61,12 @@ public class DiretoriaService {
 
                 Funcao funcao = funcaoRepository.findById(dirDto.funcaoId())
                         .orElseThrow(() -> new ResourceNotFoundException("Função", dirDto.funcaoId()));
+                if (securityAccess.isCurrentResponsible()
+                        && (!dto.empresaId().equals(colaborador.getEmpresa() == null
+                                ? null : colaborador.getEmpresa().getId())
+                        || !securityAccess.isOwnFuncao(funcao.getId()))) {
+                    throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+                }
 
                 Diretor diretor = new Diretor();
                 diretor.setColaborador(colaborador);
@@ -78,18 +87,24 @@ public class DiretoriaService {
 
     @Transactional(readOnly = true)
     public DiretoriaResponseDTO buscarPorId(Long id) {
+        requireOwnDiretoriaWhenResponsible(id);
         return mapper.toResponse(buscarEntidade(id));
     }
 
     @Transactional(readOnly = true)
     public List<DiretoriaResponseDTO> buscarTodos() {
-        return repository.findAll().stream()
+        List<Diretoria> diretorias = securityAccess.isCurrentResponsible()
+                ? repository.findAllByEmpresaId(securityAccess.currentCompanyId())
+                : repository.findAll();
+        return diretorias.stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Transactional
     public DiretoriaResponseDTO atualizar(Long id, DiretoriaRequestDTO dto) {
+        requireOwnDiretoriaWhenResponsible(id);
+        requireOwnCompanyWhenResponsible(dto.empresaId());
         Diretoria entity = buscarEntidade(id);
         EmpresaJr empresa = empresaJrService.buscarEntidade(dto.empresaId());
         mapper.updateEntity(dto, entity);
@@ -107,5 +122,17 @@ public class DiretoriaService {
     public Diretoria buscarEntidade(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Diretoria", id));
+    }
+
+    private void requireOwnCompanyWhenResponsible(Long empresaId) {
+        if (securityAccess.isCurrentResponsible()) {
+            securityAccess.requireOwnCompany(empresaId);
+        }
+    }
+
+    private void requireOwnDiretoriaWhenResponsible(Long id) {
+        if (securityAccess.isCurrentResponsible() && !securityAccess.isOwnDiretoria(id)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+        }
     }
 }

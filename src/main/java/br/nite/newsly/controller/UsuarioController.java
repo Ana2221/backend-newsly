@@ -4,7 +4,8 @@ import br.nite.newsly.dto.request.CriarUsuarioRequestDTO;
 import br.nite.newsly.dto.request.LoginRequestDTO;
 import br.nite.newsly.dto.request.UsuarioRequestDTO;
 import br.nite.newsly.dto.response.CriarUsuarioResponseDTO;
-import br.nite.newsly.dto.response.UsuarioTipadoResponse;
+import br.nite.newsly.dto.response.LoginResponseDTO;
+import br.nite.newsly.service.AuthenticationService;
 import br.nite.newsly.service.UsuarioAdapterService;
 import br.nite.newsly.service.UsuarioOutputAdapterService;
 import br.nite.newsly.service.UsuarioService;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +26,7 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
     private final UsuarioAdapterService adapterService;
     private final UsuarioOutputAdapterService outputAdapter;
+    private final AuthenticationService authenticationService;
 
     /**
      * Cria um usuário do tipo informado no campo "tipo".
@@ -40,15 +43,16 @@ public class UsuarioController {
      * ColaboradorResponseDTO, GestorResponseDTO ou ResponsavelResponseDTO.
      */
     @PostMapping("/login")
-    public ResponseEntity<UsuarioTipadoResponse> login(
+    public ResponseEntity<LoginResponseDTO> login(
             @Valid @RequestBody LoginRequestDTO dto) {
-        return ResponseEntity.ok(outputAdapter.adaptarParaLogin(usuarioService.login(dto)));
+        return ResponseEntity.ok(authenticationService.criarResposta(usuarioService.login(dto)));
     }
 
     /**
      * Retorna o usuário com os dados completos do seu tipo real.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @securityAccess.isSelf(authentication, #p0)")
     public ResponseEntity<CriarUsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(outputAdapter.adaptar(usuarioService.buscarEntidade(id)));
     }
@@ -57,6 +61,7 @@ public class UsuarioController {
      * Retorna todos os usuários com os dados completos de cada tipo real.
      */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CriarUsuarioResponseDTO>> buscarTodos() {
         List<CriarUsuarioResponseDTO> response = usuarioService.buscarTodasEntidades()
                 .stream()
@@ -66,6 +71,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CriarUsuarioResponseDTO> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody UsuarioRequestDTO dto) {
@@ -74,6 +80,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         usuarioService.excluir(id);
         return ResponseEntity.noContent().build();

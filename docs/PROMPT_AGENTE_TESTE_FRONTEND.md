@@ -15,9 +15,14 @@ com a API REST do sistema Newsly (backend Spring Boot).
 
 ## Configuração
 
-- Base URL: http://localhost:8080
+- Base URL: definida por `API_BASE_URL`; use `http://localhost:8080` ou um ambiente de teste autorizado. Produção: `https://backend-newsly.onrender.com`
 - Content-Type padrão: application/json
 - O backend deve estar rodando antes dos testes
+- Não execute cenários que criam/excluem dados contra produção sem autorização explícita.
+- Obtenha `ADMIN_EMAIL` e `ADMIN_PASSWORD` do armazenamento seguro do ambiente de teste; nunca grave essas credenciais em arquivos ou logs.
+- Faça login com a conta bootstrap antes dos cenários protegidos. Envie `Authorization: Bearer {accessToken}` em toda chamada protegida.
+- Use `API_BASE_URL` para substituir o host das URLs de exemplo abaixo.
+- Cadastro público aceita somente `tipo: "USUARIO"`; criação de `COLABORADOR`, `GESTOR` e `RESPONSAVEL` requer o token de ADMIN.
 
 ## Seu objetivo
 
@@ -40,6 +45,7 @@ Executar testes de integração chamando os endpoints reais da API e validar:
 - Se o status retornado for diferente do esperado, registre como FALHOU e continue o próximo teste
 - Se o backend retornar 500, registre como ERRO INESPERADO e inclua a mensagem completa
 - Não tente corrigir o backend — apenas reporte o que aconteceu
+- Se o login de ADMIN falhar, marque os cenários protegidos como BLOQUEADO e não tente contornar a autenticação
 
 ---
 
@@ -67,10 +73,10 @@ Use exatamente este formato para reportar cada teste:
   Detalhes        : responsavel.id=3, responsavel.tipo="RESPONSAVEL", matricula presente
 
 [TESTE 1.6] Login com email inexistente
-  Status esperado : 404
-  Status recebido : 404
+  Status esperado : 401
+  Status recebido : 401
   Resultado       : ✅ PASSOU
-  Detalhes        : error="Not Found", message="Usuário não encontrado"
+  Detalhes        : error="Unauthorized", message="E-mail ou senha inválidos."
 
 [TESTE 2.1] Criar Empresa
   Status esperado : 201
@@ -111,6 +117,7 @@ Use exatamente este formato para reportar cada teste:
 
 ### Enums
 - `TipoUsuario`: `"USUARIO"` | `"COLABORADOR"` | `"GESTOR"` | `"RESPONSAVEL"`
+- `tipo` também pode retornar `"ADMIN"` na resposta de login da conta bootstrap
 - `Permissao`: `"LEITOR"` | `"ESCRITOR"`
 - `StatusSolicitacao`: `"PENDENTE"` | `"ACEITA"` | `"RECUSADA"` | `"CANCELADA"`
 - Sempre em MAIÚSCULAS — valor diferente retorna erro 400
@@ -145,7 +152,7 @@ Erros de validação incluem o campo "errors":
 ## BLOCO 1 — Usuários e Login
 
 ### Teste 1.1 — Criar Responsável
-POST http://localhost:8080/usuarios
+POST https://backend-newsly.onrender.com/usuarios
 {
   "tipo": "RESPONSAVEL",
   "nome": "Maria Costa",
@@ -157,7 +164,7 @@ Esperado: 201 | Campos no response: { responsavel: { id, matricula, nome, tipo: 
 Salvar: responsavelId = response.responsavel.id
 
 ### Teste 1.2 — Criar Gestor
-POST http://localhost:8080/usuarios
+POST https://backend-newsly.onrender.com/usuarios
 {
   "tipo": "GESTOR",
   "nome": "Carlos Lima",
@@ -169,7 +176,7 @@ Esperado: 201 | Campos no response: { gestor: { id, matricula, nome, tipo: "GEST
 Salvar: gestorId = response.gestor.id
 
 ### Teste 1.3 — Criar Colaborador (sem empresa por enquanto)
-POST http://localhost:8080/usuarios
+POST https://backend-newsly.onrender.com/usuarios
 {
   "tipo": "COLABORADOR",
   "nome": "Ana Silva",
@@ -181,27 +188,29 @@ Esperado: 201 | Campos no response: { colaborador: { id, matricula, nome, ativid
 Salvar: colaboradorId = response.colaborador.id
 
 ### Teste 1.4 — Login com Responsável
-POST http://localhost:8080/usuarios/login
+POST https://backend-newsly.onrender.com/usuarios/login
 { "email": "maria@newsly.com", "senha": "senha123" }
-Esperado: 200 | Campos: { id, nome, tipo: "RESPONSAVEL", matricula, permissoes }
+Esperado: 200 | Campos: { accessToken, tokenType: "Bearer", usuario: { id, nome, tipo: "RESPONSAVEL", permissoes } }
+Salvar: responsavelToken = response.accessToken
 
 ### Teste 1.5 — Login com Gestor
-POST http://localhost:8080/usuarios/login
+POST https://backend-newsly.onrender.com/usuarios/login
 { "email": "carlos@newsly.com", "senha": "senha123" }
-Esperado: 200 | Campos: { id, nome, tipo: "GESTOR", permissoes }
+Esperado: 200 | Campos: { accessToken, tokenType: "Bearer", usuario: { id, nome, tipo: "GESTOR", permissoes } }
+Salvar: gestorToken = response.accessToken
 
 ### Teste 1.6 — Login com email inexistente
-POST http://localhost:8080/usuarios/login
+POST https://backend-newsly.onrender.com/usuarios/login
 { "email": "naoexiste@newsly.com", "senha": "senha123" }
-Esperado: 404
+Esperado: 401
 
 ### Teste 1.7 — Login com senha errada
-POST http://localhost:8080/usuarios/login
+POST https://backend-newsly.onrender.com/usuarios/login
 { "email": "maria@newsly.com", "senha": "errada" }
-Esperado: 409
+Esperado: 401
 
 ### Teste 1.8 — Criar usuário sem tipo
-POST http://localhost:8080/usuarios
+POST https://backend-newsly.onrender.com/usuarios
 { "nome": "Teste", "senha": "senha123" }
 Esperado: 400 | errors deve conter campo "tipo"
 
@@ -210,7 +219,7 @@ Esperado: 400 | errors deve conter campo "tipo"
 ## BLOCO 2 — Empresa
 
 ### Teste 2.1 — Criar Empresa
-POST http://localhost:8080/empresas
+POST https://backend-newsly.onrender.com/empresas
 {
   "nome": "Nite Jr",
   "cnpj": "12.345.678/0001-90",
@@ -220,7 +229,7 @@ Esperado: 201 | Campos: { id, nome, cnpj, responsavel: { id, nome } }
 Salvar: empresaId = response.id
 
 ### Teste 2.2 — CNPJ duplicado
-POST http://localhost:8080/empresas
+POST https://backend-newsly.onrender.com/empresas
 {
   "nome": "Outra Empresa",
   "cnpj": "12.345.678/0001-90",
@@ -229,11 +238,11 @@ POST http://localhost:8080/empresas
 Esperado: 409
 
 ### Teste 2.3 — Buscar empresa por ID
-GET http://localhost:8080/empresas/{empresaId}
+GET https://backend-newsly.onrender.com/empresas/{empresaId}
 Esperado: 200 | Campos: { id, nome, cnpj, responsavel, colaboradores, diretorias, noticias }
 
 ### Teste 2.4 — Atualizar cor da empresa
-PUT http://localhost:8080/empresas/{empresaId}
+PUT https://backend-newsly.onrender.com/empresas/{empresaId}
 {
   "nome": "Nite Jr",
   "cnpj": "12.345.678/0001-90",
@@ -242,19 +251,19 @@ PUT http://localhost:8080/empresas/{empresaId}
 Esperado: 200 | response.configurations.color == "#FF5733"
 
 ### Teste 2.5 — Upload de logo
-PATCH http://localhost:8080/empresas/{empresaId}/logo
+PATCH https://backend-newsly.onrender.com/empresas/{empresaId}/logo
 Content-Type: multipart/form-data
 Campo: arquivo = [arquivo de imagem qualquer]
 Esperado: 200 | response.logoUrl começa com "/uploads/logos/"
 
 ### Teste 2.6 — Renderizar logo
 Após teste 2.5, montar URL:
-http://localhost:8080 + response.logoUrl
+https://backend-newsly.onrender.com + response.logoUrl
 Fazer GET nessa URL
 Esperado: 200 com conteúdo de imagem
 
 ### Teste 2.7 — Adicionar colaborador à empresa
-PATCH http://localhost:8080/empresas/adicionar-membro/{colaboradorId}/{empresaId}
+PATCH https://backend-newsly.onrender.com/empresas/adicionar-membro/{colaboradorId}/{empresaId}
 Esperado: 200
 
 ---
@@ -262,24 +271,24 @@ Esperado: 200
 ## BLOCO 3 — Funções e Diretoria
 
 ### Teste 3.1 — Criar Função
-POST http://localhost:8080/funcoes
+POST https://backend-newsly.onrender.com/funcoes
 { "nome": "Presidente", "descricao": "Responsável pela gestão geral" }
 Esperado: 201 | Campos: { id, nome, descricao }
 Salvar: funcaoId = response.id
 
 ### Teste 3.2 — Função com nome duplicado
-POST http://localhost:8080/funcoes
+POST https://backend-newsly.onrender.com/funcoes
 { "nome": "Presidente", "descricao": "Outra descrição" }
 Esperado: 409
 
 ### Teste 3.3 — Criar Diretoria sem membros
-POST http://localhost:8080/diretorias
+POST https://backend-newsly.onrender.com/diretorias
 { "criadaEm": "2024-01-01", "empresaId": {empresaId} }
 Esperado: 201 | Campos: { id, criadaEm, empresaId, empresaNome, diretores: [] }
 Salvar: diretoriaId = response.id
 
 ### Teste 3.4 — Criar Diretoria com membros
-POST http://localhost:8080/diretorias
+POST https://backend-newsly.onrender.com/diretorias
 {
   "criadaEm": "2024-06-01",
   "empresaId": {empresaId},
@@ -294,7 +303,7 @@ POST http://localhost:8080/diretorias
 Esperado: 201 | response.diretores deve ter 1 item com colaboradorNome e funcao.nome
 
 ### Teste 3.5 — Colaborador já é diretor
-POST http://localhost:8080/diretorias
+POST https://backend-newsly.onrender.com/diretorias
 {
   "criadaEm": "2024-07-01",
   "empresaId": {empresaId},
@@ -305,7 +314,7 @@ POST http://localhost:8080/diretorias
 Esperado: 409 | message contém "já é diretor"
 
 ### Teste 3.6 — Buscar diretoria por ID
-GET http://localhost:8080/diretorias/{diretoriaId}
+GET https://backend-newsly.onrender.com/diretorias/{diretoriaId}
 Esperado: 200 | Campos: { id, criadaEm, empresaId, empresaNome, diretores[] }
 Validar que diretores[] contém { colaboradorId, colaboradorNome, funcao: { id, nome } }
 
@@ -313,8 +322,9 @@ Validar que diretores[] contém { colaboradorId, colaboradorNome, funcao: { id, 
 
 ## BLOCO 4 — Notícias e Comentários
 
-### Teste 4.1 — Criar Notícia
-POST http://localhost:8080/noticias
+### Teste 4.1 — Criar Notícia Direta (gestor/escritor)
+Executar autenticado como gestor com permissão de escrita ou administrador. Responsável deve usar a submissão do bloco 5.
+POST https://backend-newsly.onrender.com/noticias
 {
   "titulo": "Nova parceria firmada",
   "conteudo": "A Nite Jr firmou uma nova parceria estratégica.",
@@ -325,19 +335,19 @@ Esperado: 201 | Campos: { id, titulo, conteudo, publicadaEm, imagemUrl: null, em
 Salvar: noticiaId = response.id
 
 ### Teste 4.2 — Upload de imagem da notícia
-PATCH http://localhost:8080/noticias/{noticiaId}/imagem
+PATCH https://backend-newsly.onrender.com/noticias/{noticiaId}/imagem
 Content-Type: multipart/form-data
 Campo: arquivo = [arquivo de imagem qualquer]
 Esperado: 200 | response.imagemUrl começa com "/uploads/noticias/"
 
 ### Teste 4.3 — Renderizar imagem da notícia
 Após teste 4.2, montar URL:
-http://localhost:8080 + response.imagemUrl
+https://backend-newsly.onrender.com + response.imagemUrl
 Fazer GET nessa URL
 Esperado: 200 com conteúdo de imagem
 
 ### Teste 4.4 — Criar Comentário raiz
-POST http://localhost:8080/comentarios
+POST https://backend-newsly.onrender.com/comentarios
 {
   "conteudo": "Ótima notícia!",
   "publicadoEm": "2026-08-17T11:00:00",
@@ -347,7 +357,7 @@ Esperado: 201 | Campos: { id, conteudo, noticiaId, comentarioPaiId: null, respos
 Salvar: comentarioId = response.id
 
 ### Teste 4.5 — Criar Resposta ao comentário
-POST http://localhost:8080/comentarios
+POST https://backend-newsly.onrender.com/comentarios
 {
   "conteudo": "Concordo totalmente!",
   "publicadoEm": "2026-08-17T11:05:00",
@@ -357,7 +367,7 @@ POST http://localhost:8080/comentarios
 Esperado: 201 | response.comentarioPaiId == {comentarioId}
 
 ### Teste 4.6 — Listar comentários raiz da notícia
-GET http://localhost:8080/comentarios/noticia/{noticiaId}
+GET https://backend-newsly.onrender.com/comentarios/noticia/{noticiaId}
 Esperado: 200 | Lista com apenas comentários sem pai
 Validar que nenhum item tem comentarioPaiId preenchido
 
@@ -366,59 +376,68 @@ Validar que nenhum item tem comentarioPaiId preenchido
 ## BLOCO 5 — Solicitações
 
 ### Teste 5.1 — Enviar Solicitação
-POST http://localhost:8080/solicitacoes
+POST https://backend-newsly.onrender.com/solicitacoes
 {
   "responsavelId": {responsavelId},
-  "gestorId": {gestorId},
-  "noticiaId": {noticiaId}
+  "titulo": "Notícia para aprovação",
+  "conteudo": "Conteúdo submetido para aprovação.",
+  "publicadaEm": "2026-08-17T10:00:00",
+  "empresaId": {empresaId}
 }
-Esperado: 201 | Campos: { id, responsavelNome, gestorNome, noticiaTitulo, status: "PENDENTE", criadaEm }
+Esperado: 201 | Campos: { id, responsavelNome, noticiaTitulo, noticiaConteudo, status: "PENDENTE", criadaEm } | noticiaId == null; notícia ainda não existe
 Salvar: solicitacaoId = response.id
 
-### Teste 5.2 — Solicitação duplicada
-POST http://localhost:8080/solicitacoes
+### Teste 5.2 — Criar segunda submissão independente
+POST https://backend-newsly.onrender.com/solicitacoes
 {
   "responsavelId": {responsavelId},
-  "gestorId": {gestorId},
-  "noticiaId": {noticiaId}
+  "titulo": "Outra submissão",
+  "conteudo": "Outro conteúdo para aprovação.",
+  "publicadaEm": "2026-08-17T10:00:00",
+  "empresaId": {empresaId}
 }
-Esperado: 409
+Esperado: 201 | Outra solicitação PENDENTE independente
 
-### Teste 5.3 — Listar pendentes do gestor
-GET http://localhost:8080/solicitacoes/gestor/{gestorId}/pendentes
+### Teste 5.3 — Outro gestor visualiza a fila compartilhada
+GET https://backend-newsly.onrender.com/solicitacoes/gestor/{outroGestorId}/pendentes
 Esperado: 200 | Lista com status == "PENDENTE"
 
 ### Teste 5.4 — Gestor recusa com motivo
-PATCH http://localhost:8080/solicitacoes/{solicitacaoId}/recusar
+PATCH https://backend-newsly.onrender.com/solicitacoes/{solicitacaoId}/recusar
 { "motivoRecusa": "Conteúdo fora do padrão." }
 Esperado: 200 | response.status == "RECUSADA" | response.motivoRecusa == "Conteúdo fora do padrão."
 
 ### Teste 5.5 — Tentar recusar novamente (não PENDENTE)
-PATCH http://localhost:8080/solicitacoes/{solicitacaoId}/recusar
+PATCH https://backend-newsly.onrender.com/solicitacoes/{solicitacaoId}/recusar
 Esperado: 409 | message contém "RECUSADA"
 
 ### Teste 5.6 — Nova solicitação e aceitar
-POST http://localhost:8080/solicitacoes
+POST https://backend-newsly.onrender.com/solicitacoes
 {
   "responsavelId": {responsavelId},
-  "gestorId": {gestorId},
-  "noticiaId": {noticiaId}
+  "titulo": "Notícia que será aprovada",
+  "conteudo": "Conteúdo para aprovação.",
+  "publicadaEm": "2026-08-17T10:00:00",
+  "empresaId": {empresaId}
 }
 Salvar: solicitacaoId2 = response.id
 
-PATCH http://localhost:8080/solicitacoes/{solicitacaoId2}/aceitar
-Esperado: 200 | response.status == "ACEITA" | response.respondidaEm não nulo
+PATCH https://backend-newsly.onrender.com/solicitacoes/{solicitacaoId2}/aceitar
+Executar autenticado como outro gestor
+Esperado: 200 | response.status == "ACEITA" | response.respondidaEm não nulo | response.noticiaId não nulo
 
 ### Teste 5.7 — Nova solicitação e cancelar (pelo responsável)
-POST http://localhost:8080/solicitacoes
+POST https://backend-newsly.onrender.com/solicitacoes
 {
   "responsavelId": {responsavelId},
-  "gestorId": {gestorId},
-  "noticiaId": {noticiaId}
+  "titulo": "Notícia que será cancelada",
+  "conteudo": "Conteúdo para aprovação.",
+  "publicadaEm": "2026-08-17T10:00:00",
+  "empresaId": {empresaId}
 }
 Salvar: solicitacaoId3 = response.id
 
-PATCH http://localhost:8080/solicitacoes/{solicitacaoId3}/cancelar
+PATCH https://backend-newsly.onrender.com/solicitacoes/{solicitacaoId3}/cancelar
 Esperado: 200 | response.status == "CANCELADA"
 
 ---
@@ -426,16 +445,16 @@ Esperado: 200 | response.status == "CANCELADA"
 ## BLOCO 6 — Cenários de erro gerais
 
 ### Teste 6.1 — Buscar recurso inexistente
-GET http://localhost:8080/empresas/999999
+GET https://backend-newsly.onrender.com/empresas/999999
 Esperado: 404 | { status: 404, error: "Not Found", message: "..." }
 
 ### Teste 6.2 — Body inválido
-POST http://localhost:8080/funcoes
+POST https://backend-newsly.onrender.com/funcoes
 { "descricao": "sem nome" }
 Esperado: 400 | errors[] contém { field: "nome", message: "Nome é obrigatório" }
 
 ### Teste 6.3 — CNPJ com formato inválido
-POST http://localhost:8080/empresas
+POST https://backend-newsly.onrender.com/empresas
 { "nome": "Teste", "cnpj": "00000000000000", "responsavelId": 1 }
 Esperado: 400 | errors[] contém { field: "cnpj" }
 

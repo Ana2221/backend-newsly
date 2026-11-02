@@ -1,6 +1,6 @@
 # Rotas — Diretoria
 
-> Base URL: `http://localhost:8080`
+> Base URL: `https://backend-newsly.onrender.com`
 > Todas as rotas usam `Content-Type: application/json`
 
 ---
@@ -72,6 +72,8 @@ Usado dentro de `DiretorResumoResponseDTO.funcao`.
 | `id` | `Long` | ID da função |
 | `nome` | `String` | Nome da função (ex: "Presidente") |
 | `descricao` | `String` | Descrição da função |
+| `empresaId` | `Long` | EJ proprietária; `null` representa função global gerenciada por ADMIN |
+| `empresaId` | `Long` | ID da EJ proprietária; `null` identifica função global |
 
 ---
 

@@ -15,4 +15,8 @@ public interface DiretorRepository extends JpaRepository<Diretor, Long> {
     List<Diretor> findAllByDiretoriaId(Long diretoriaId);
 
     Optional<Diretor> findByColaboradorId(Long colaboradorId);
+
+    List<Diretor> findAllByDiretoriaEmpresaId(Long empresaId);
+
+    boolean existsByIdAndDiretoriaEmpresaId(Long id, Long empresaId);
 }

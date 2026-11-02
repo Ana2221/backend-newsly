@@ -2,8 +2,8 @@
 
 ## Contexto
 
-Esta feature permite que um **Responsável** solicite a publicação de uma notícia para um **Gestor** específico.
-O Gestor pode aceitar ou recusar. O Responsável pode cancelar enquanto a solicitação estiver pendente.
+Esta feature permite que um **Responsável** envie os dados completos de uma notícia para a fila compartilhada dos **Gestores**.
+A notícia só é criada após aprovação. Qualquer gestor pode aceitar ou recusar. O Responsável pode cancelar enquanto a solicitação estiver pendente.
 
 ---
 
@@ -22,9 +22,11 @@ Somente solicitações com status `PENDENTE` podem ser modificadas.
 ## Regras de Negócio
 
 - Quem envia é sempre um `Responsavel`
-- O `Responsavel` escolhe um `Gestor` específico ao enviar
-- Não é possível enviar solicitação duplicada: mesma `noticiaId` + mesmo `gestorId` com status `PENDENTE`
+- A solicitação vai para a fila compartilhada; o responsável não escolhe nem informa um gestor
+- A submissão guarda título, conteúdo, data e empresa na solicitação; antes do aceite, não existe registro de notícia
 - Somente o `Gestor` pode aceitar ou recusar
+- Aceitar cria e publica a notícia
+- Recusar ou cancelar encerra a solicitação sem criar a notícia
 - Somente o `Responsavel` pode cancelar
 - Motivo da recusa é opcional
 
@@ -41,16 +43,20 @@ POST /solicitacoes
 ```json
 {
   "responsavelId": 1,
-  "gestorId": 2,
-  "noticiaId": 3
+  "titulo": "Nova parceria firmada",
+  "conteudo": "A empresa firmou uma nova parceria...",
+  "publicadaEm": "2026-08-17T10:00:00",
+  "empresaId": 1
 }
 ```
 
 | Campo | Tipo | Obrigatório |
 |-------|------|-------------|
 | `responsavelId` | `Long` | ✅ |
-| `gestorId` | `Long` | ✅ |
-| `noticiaId` | `Long` | ✅ |
+| `titulo` | `String` | ✅ |
+| `conteudo` | `String` | ✅ |
+| `publicadaEm` | `LocalDateTime` | ✅ |
+| `empresaId` | `Long` | ✅ |
 
 **Response `201`:**
 ```json
@@ -58,18 +64,24 @@ POST /solicitacoes
   "id": 1,
   "responsavelId": 1,
   "responsavelNome": "Maria Costa",
-  "gestorId": 2,
-  "gestorNome": "Carlos Lima",
-  "noticiaId": 3,
+  "gestorId": null,
+  "gestorNome": null,
+  "noticiaId": null,
   "noticiaTitulo": "Nova parceria firmada",
+  "noticiaConteudo": "A empresa firmou uma nova parceria...",
+  "noticiaPublicadaEm": "2026-08-17T10:00:00",
+  "empresaId": 1,
+  "empresaNome": "Nite Jr",
   "status": "PENDENTE",
   "criadaEm": "2026-08-17T10:00:00"
 }
 ```
 
 **Erros:**
-- `404` — Responsável, Gestor ou Notícia não encontrados
-- `409` — Já existe solicitação `PENDENTE` para esta notícia com este gestor
+- `404` — Responsável, Gestor ou Empresa não encontrados
+
+Após o aceite, `noticiaId` será preenchido com a notícia criada. Se recusada ou cancelada, `noticiaId` permanece `null` e nenhuma notícia é criada.
+O `gestorId` não é enviado na submissão; ele é preenchido com o gestor que aprovar ou recusar.
 
 ---
 
@@ -185,13 +197,14 @@ Retorna todas as solicitações recebidas por um gestor (qualquer status).
 
 ---
 
-### Listar Pendentes do Gestor
+### Listar Fila de Pendências
 ```
 GET /solicitacoes/gestor/{gestorId}/pendentes
 ```
 
-Retorna somente as solicitações com status `PENDENTE` de um gestor.
-Use este endpoint para exibir a fila de aprovações do gestor.
+Retorna todas as solicitações com status `PENDENTE`, independentemente do gestor indicado no envio.
+O `gestorId` da rota deve ser o ID do gestor autenticado (ou a chamada deve ser feita por um administrador).
+Qualquer gestor pode aprovar ou recusar uma solicitação da fila.
 
 **Response `200`:** `List<SolicitacaoResponseDTO>`
 
@@ -206,8 +219,12 @@ Use este endpoint para exibir a fila de aprovações do gestor.
 | `responsavelNome` | `String` | ✅ | Nome do responsável |
 | `gestorId` | `Long` | ✅ | ID do gestor |
 | `gestorNome` | `String` | ✅ | Nome do gestor |
-| `noticiaId` | `Long` | ✅ | ID da notícia |
-| `noticiaTitulo` | `String` | ✅ | Título da notícia |
+| `noticiaId` | `Long` | ❌ | ID da notícia; preenchido somente após aprovação |
+| `noticiaTitulo` | `String` | ✅ | Título submetido |
+| `noticiaConteudo` | `String` | ✅ | Conteúdo submetido |
+| `noticiaPublicadaEm` | `LocalDateTime` | ✅ | Data de publicação submetida |
+| `empresaId` | `Long` | ✅ | Empresa da notícia |
+| `empresaNome` | `String` | ✅ | Nome da empresa |
 | `status` | `StatusSolicitacao` | ✅ | `PENDENTE`, `ACEITA`, `RECUSADA`, `CANCELADA` |
 | `criadaEm` | `LocalDateTime` | ✅ | Data/hora do envio |
 | `respondidaEm` | `LocalDateTime` | ❌ | Preenchido após aceitar, recusar ou cancelar |

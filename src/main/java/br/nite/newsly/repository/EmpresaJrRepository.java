@@ -12,4 +12,10 @@ public interface EmpresaJrRepository extends JpaRepository<EmpresaJr, Long> {
     Optional<EmpresaJr> findByCnpj(String cnpj);
 
     boolean existsByCnpj(String cnpj);
+
+    boolean existsByContatoEmailIgnoreCase(String email);
+
+    boolean existsByContatoEmailIgnoreCaseAndIdNot(String email, Long id);
+
+    boolean existsByIdAndResponsavelId(Long id, Long responsavelId);
 }

@@ -1,8 +1,7 @@
 package br.nite.newsly.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record EmpresaJrRequestDTO(
@@ -12,10 +11,9 @@ public record EmpresaJrRequestDTO(
         String nome,
 
         @NotBlank(message = "CNPJ é obrigatório")
-        @Pattern(regexp = "\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}",
-                 message = "CNPJ deve seguir o formato XX.XXX.XXX/XXXX-XX")
         String cnpj,
 
+        @Valid
         ContatoRequestDTO contato,
 
         @Size(max = 500, message = "Descrição deve ter no máximo 500 caracteres")

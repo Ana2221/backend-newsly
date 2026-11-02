@@ -7,6 +7,7 @@ import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.mapper.GestorMapper;
 import br.nite.newsly.repository.GestorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +19,12 @@ public class GestorService {
 
     private final GestorRepository repository;
     private final GestorMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public GestorResponseDTO criar(GestorRequestDTO dto) {
         Gestor entity = mapper.toEntity(dto);
+        entity.setSenha(passwordEncoder.encode(dto.senha()));
         return mapper.toResponse(repository.save(entity));
     }
 
@@ -41,6 +44,7 @@ public class GestorService {
     public GestorResponseDTO atualizar(Long id, GestorRequestDTO dto) {
         Gestor entity = buscarEntidade(id);
         mapper.updateEntity(dto, entity);
+        entity.setSenha(passwordEncoder.encode(dto.senha()));
         return mapper.toResponse(repository.save(entity));
     }
 

@@ -3,5 +3,6 @@ package br.nite.newsly.dto.response;
 public record FuncaoResponseDTO(
         Long id,
         String nome,
-        String descricao
+        String descricao,
+        Long empresaId
 ) {}

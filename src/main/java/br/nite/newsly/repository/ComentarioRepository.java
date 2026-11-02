@@ -16,4 +16,8 @@ public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
 
     // Busca respostas diretas de um comentário
     List<Comentario> findAllByComentarioPaiId(Long comentarioPaiId);
+
+    List<Comentario> findAllByNoticiaEmpresaId(Long empresaId);
+
+    boolean existsByIdAndNoticiaEmpresaId(Long id, Long empresaId);
 }

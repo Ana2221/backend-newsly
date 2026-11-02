@@ -1,6 +1,6 @@
 # API Newsly — Mapeamento de Rotas
 
-> Base URL: `http://localhost:8080`
+> Base URL: `https://backend-newsly.onrender.com`
 > Content-Type: `application/json`
 
 ---
@@ -40,7 +40,59 @@ Erros de validação incluem o campo `errors`:
 | `400` | Dados inválidos |
 | `404` | Recurso não encontrado |
 | `409` | Conflito de negócio |
+| `401` | Autenticação ausente ou inválida |
+| `403` | Usuário autenticado sem permissão para a operação |
 | `500` | Erro interno |
+
+---
+
+## Autenticação e autorização
+
+Todas as rotas exigem um JWT Bearer, exceto `POST /usuarios`, `POST /usuarios/login` e `GET /uploads/**`.
+Após o login, envie o token nas chamadas protegidas:
+
+Para orientações de armazenamento do token, ciclo de sessão, tratamento de `401`/`403` e matriz de acesso por perfil, consulte [SEGURANCA_FRONTEND.md](./SEGURANCA_FRONTEND.md).
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+O login retorna `200` com `accessToken`, `tokenType` (`Bearer`), `expiresIn` (segundos) e os dados básicos do usuário. Os tokens expiram após 30 minutos por padrão.
+
+```json
+{
+  "accessToken": "<jwt>",
+  "tokenType": "Bearer",
+  "expiresIn": 1800,
+  "usuario": {
+    "id": 1,
+    "nome": "Ana Silva",
+    "email": "ana@email.com",
+    "tipo": "RESPONSAVEL",
+    "permissoes": ["LEITOR", "ESCRITOR"]
+  }
+}
+```
+
+Política de acesso:
+
+- `LEITOR` pode consultar conteúdo; `ESCRITOR` pode consultar e alterar notícias/comentários.
+- `RESPONSAVEL` pode consultar, criar e editar dados da própria EJ, incluindo colaboradores, diretorias, diretores, funções, notícias e comentários. Não pode excluir registros nem consultar/alterar dados de outras EJs.
+- Somente `ADMIN` pode criar EJs e gerenciar contas e dados globais.
+- Somente `GESTOR` pode aceitar/recusar solicitações.
+- `RESPONSAVEL` pode criar e cancelar solicitações próprias; gestores e responsáveis só consultam solicitações associadas a si.
+- A criação pública em `POST /usuarios` aceita somente `tipo: "USUARIO"`. Somente `ADMIN` pode criar os demais tipos.
+
+Para o responsável, `GET` de listas retorna somente os registros da EJ vinculada ao seu usuário. IDs de outros registros não autorizam acesso: consultas e alterações por ID também verificam a EJ proprietária. Operações `DELETE` continuam exclusivas de `ADMIN`.
+
+Configure no ambiente do backend:
+
+- `NEWSLY_JWT_SECRET`: segredo com no mínimo 32 bytes; nunca o versione.
+- `NEWSLY_BOOTSTRAP_ADMIN_EMAIL` e `NEWSLY_BOOTSTRAP_ADMIN_PASSWORD`: credenciais do administrador inicial; a senha deve conter ao menos 12 caracteres.
+- Opcional: `NEWSLY_JWT_EXPIRATION_SECONDS` (padrão `1800`).
+
+O backend cria ou promove a conta configurada como administrador durante a inicialização. A inicialização falha se o segredo JWT ou as credenciais bootstrap não forem configurados.
+Senhas novas são armazenadas com hash PBKDF2. Senhas legadas em texto puro são convertidas para hash no primeiro login bem-sucedido.
 
 ---
 
@@ -48,13 +100,13 @@ Erros de validação incluem o campo `errors`:
 
 Imagens enviadas via upload são servidas diretamente pelo Spring em:
 ```
-GET http://localhost:8080/uploads/{subpasta}/{arquivo}
+GET https://backend-newsly.onrender.com/uploads/{subpasta}/{arquivo}
 ```
 
 Para renderizar no frontend, concatene a base URL com o campo retornado pela API:
 ```jsx
-<img src={`http://localhost:8080${noticia.imagemUrl}`} />
-<img src={`http://localhost:8080${empresa.logoUrl}`} />
+<img src={`https://backend-newsly.onrender.com${noticia.imagemUrl}`} />
+<img src={`https://backend-newsly.onrender.com${empresa.logoUrl}`} />
 ```
 
 ---
@@ -67,22 +119,19 @@ Cria um usuário do tipo informado no campo `tipo`.
 **Request Body:**
 ```json
 {
-  "tipo": "COLABORADOR",
+  "tipo": "USUARIO",
   "nome": "Ana Silva",
   "senha": "senha123",
   "contato": {
     "telefone": "11999999999",
     "email": "ana@email.com"
-  },
-  "atividade": true,
-  "empresaId": 1,
-  "permissoes": ["LEITOR", "ESCRITOR"]
+  }
 }
 ```
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `tipo` | `TipoUsuario` | ✅ | `USUARIO`, `COLABORADOR`, `GESTOR` ou `RESPONSAVEL` |
+| `tipo` | `TipoUsuario` | ✅ | Cadastro público: `USUARIO`. `ADMIN` pode criar `COLABORADOR`, `GESTOR` e `RESPONSAVEL` |
 | `nome` | `String` | ✅ | Máx. 150 caracteres |
 | `senha` | `String` | ✅ | Entre 6 e 255 caracteres |
 | `contato.telefone` | `String` | ❌ | Máx. 20 caracteres |
@@ -93,6 +142,7 @@ Cria um usuário do tipo informado no campo `tipo`.
 
 **Responses:**
 - `201` — `CriarUsuarioResponseDTO` com o campo do tipo criado preenchido
+- `403` — tentativa sem privilégios de criar um tipo diferente de `USUARIO`
 
 ---
 
@@ -108,16 +158,15 @@ Autentica o usuário e retorna os dados do tipo real.
 ```
 
 **Responses:**
-- `200` — `ColaboradorResponseDTO` | `GestorResponseDTO` | `ResponsavelResponseDTO`
-- `404` — Usuário não encontrado
-- `409` — E-mail ou senha inválidos
+- `200` — `LoginResponseDTO` com token Bearer e dados básicos do usuário
+- `401` — E-mail ou senha inválidos
 
 ---
 
-### GET `/usuarios` — `200` `List<CriarUsuarioResponseDTO>`
-### GET `/usuarios/{id}` — `200` `CriarUsuarioResponseDTO` / `404`
-### PUT `/usuarios/{id}` — `200` `CriarUsuarioResponseDTO` / `404`
-### DELETE `/usuarios/{id}` — `204` / `404`
+### GET `/usuarios` — `200` `List<CriarUsuarioResponseDTO>` (ADMIN)
+### GET `/usuarios/{id}` — `200` `CriarUsuarioResponseDTO` (ADMIN ou próprio usuário) / `404`
+### PUT `/usuarios/{id}` — `200` `CriarUsuarioResponseDTO` (ADMIN) / `404`
+### DELETE `/usuarios/{id}` — `204` (ADMIN) / `404`
 
 ---
 
@@ -202,6 +251,9 @@ Autentica o usuário e retorna os dados do tipo real.
 {
   "nome": "Nite Jr",
   "cnpj": "12.345.678/0001-90",
+  "contato": {
+    "email": "contato@nitejr.com.br"
+  },
   "responsavelId": 1
 }
 ```
@@ -209,11 +261,15 @@ Autentica o usuário e retorna os dados do tipo real.
 | Campo | Tipo | Obrigatório | Validação |
 |-------|------|-------------|-----------|
 | `nome` | `String` | ✅ | Máx. 150 caracteres |
-| `cnpj` | `String` | ✅ | Formato `XX.XXX.XXX/XXXX-XX` |
-| `responsavelId` | `Long` | ✅ | — |
+| `cnpj` | `String` | ✅ | Obrigatório; fora do perfil `test`, consultado na BrasilAPI |
+| `contato.email` | `String` | ✅ | E-mail válido e único entre empresas |
+| `responsavelId` | `Long` | Para administrador | Ignorado para responsável autenticado |
 
 **Responses:** `201` — `EmpresaJrResponseDTO`
-> `409` se o CNPJ já estiver cadastrado.
+> `400` se o CNPJ estiver ausente, for inválido na BrasilAPI ou o e-mail estiver ausente.
+> `409` se o CNPJ ou e-mail já estiver cadastrado ou o responsável já possuir empresa.
+> `503` se a BrasilAPI estiver indisponível.
+> No perfil `test`, qualquer CNPJ não vazio é aceito sem consulta externa ou validação de formato.
 
 ---
 
@@ -229,7 +285,7 @@ Upload da logo da empresa.
 
 **Response `200`:** `EmpresaJrResponseDTO` com `logoUrl` preenchido.
 > Se já existir uma logo, ela é removida automaticamente antes de salvar a nova.
-> **Renderizar no frontend:** `<img src={"http://localhost:8080" + empresa.logoUrl} />`
+> **Renderizar no frontend:** `<img src={"https://backend-newsly.onrender.com" + empresa.logoUrl} />`
 
 ---
 
@@ -317,23 +373,30 @@ Adiciona um colaborador à empresa.
 ```json
 {
   "nome": "Presidente",
-  "descricao": "Responsável pela gestão geral"
+  "descricao": "Responsável pela gestão geral",
+  "empresaId": 1
 }
 ```
 
-**Responses:** `201` — `FuncaoResponseDTO`
-> `409` se já existir uma função com o mesmo nome.
+Para `RESPONSAVEL`, `empresaId` é sempre definido pelo backend com a EJ do token; o valor enviado no request não permite mover a função para outra empresa. Para `ADMIN`, `empresaId` pode associar a função a uma EJ ou deixá-la global (`null`).
 
-### GET `/funcoes` — `200` `List<FuncaoResponseDTO>`
-### GET `/funcoes/{id}` — `200` `FuncaoResponseDTO` / `404`
-### PUT `/funcoes/{id}` — `200` `FuncaoResponseDTO` / `404`
-### DELETE `/funcoes/{id}` — `204` / `404`
+**Responses:** `201` — `FuncaoResponseDTO` com `empresaId`
+> `409` se já existir uma função com o mesmo nome na EJ.
+
+### GET `/funcoes` — `200` `List<FuncaoResponseDTO>` (RESPONSAVEL recebe apenas funções da própria EJ)
+### GET `/funcoes/{id}` — `200` `FuncaoResponseDTO` (ADMIN ou responsável da EJ) / `404`
+### PUT `/funcoes/{id}` — `200` `FuncaoResponseDTO` (ADMIN ou responsável da EJ) / `404`
+### DELETE `/funcoes/{id}` — `204` (ADMIN) / `404`
+
+Funções existentes antes da associação por EJ podem continuar com `empresaId: null`. Um ADMIN pode associá-las a uma EJ pelo `PUT /funcoes/{id}`. Funções globais não são listadas nem editáveis pelo responsável.
 
 ---
 
 ## Notícias `/noticias`
 
 ### POST `/noticias`
+
+Esta rota continua disponível para gestores/escritores e administradores. Responsáveis devem usar `POST /solicitacoes`, que cria a pendência sem persistir a notícia.
 
 **Request Body:**
 ```json
@@ -361,7 +424,7 @@ Upload da imagem da notícia.
 
 **Response `200`:** `NoticiaResponseDTO` com `imagemUrl` preenchido.
 > Se já existir uma imagem, ela é removida automaticamente antes de salvar a nova.
-> **Renderizar no frontend:** `<img src={"http://localhost:8080" + noticia.imagemUrl} />`
+> **Renderizar no frontend:** `<img src={"https://backend-newsly.onrender.com" + noticia.imagemUrl} />`
 
 ---
 
@@ -377,6 +440,7 @@ Upload da imagem da notícia.
   "titulo": "Nova parceria firmada",
   "conteudo": "...",
   "publicadaEm": "2026-08-17T10:00:00",
+  "aprovada": true,
   "imagemUrl": "/uploads/noticias/uuid.jpg",
   "empresaId": 1,
   "empresaNome": "Nite Jr"
@@ -419,19 +483,22 @@ Upload da imagem da notícia.
 ## Solicitações `/solicitacoes`
 
 ### POST `/solicitacoes`
-Responsável envia solicitação de publicação para um Gestor.
+Responsável envia os dados completos da notícia. A API cria somente uma solicitação `PENDENTE`; a notícia ainda não existe e só será criada se um gestor aceitar.
 
 **Request Body:**
 ```json
 {
   "responsavelId": 1,
-  "gestorId": 2,
-  "noticiaId": 3
+  "titulo": "Nova parceria firmada",
+  "conteudo": "A empresa firmou uma nova parceria...",
+  "publicadaEm": "2026-08-17T10:00:00",
+  "empresaId": 1
 }
 ```
 
 **Responses:** `201` — `SolicitacaoResponseDTO`
-> `409` se já existir solicitação `PENDENTE` para a mesma notícia e gestor.
+Na resposta pendente, `noticiaId` é `null`; título, conteúdo, data e empresa vêm dos dados submetidos. Após aceitar, `noticiaId` aponta para a notícia recém-criada. Ao recusar ou cancelar, nenhuma notícia é criada.
+Não envie `gestorId`: a solicitação entra na fila compartilhada. O gestor que aprovar ou recusar será registrado em `gestorId` na resposta.
 
 ### PATCH `/solicitacoes/{id}/aceitar` — Gestor aceita — `200`
 ### PATCH `/solicitacoes/{id}/recusar` — Gestor recusa (body opcional com `motivoRecusa`) — `200`
@@ -440,7 +507,11 @@ Responsável envia solicitação de publicação para um Gestor.
 ### GET `/solicitacoes/{id}` — `200` `SolicitacaoResponseDTO` / `404`
 ### GET `/solicitacoes/responsavel/{responsavelId}` — `200` `List<SolicitacaoResponseDTO>`
 ### GET `/solicitacoes/gestor/{gestorId}` — `200` `List<SolicitacaoResponseDTO>`
-### GET `/solicitacoes/gestor/{gestorId}/pendentes` — `200` `List<SolicitacaoResponseDTO>`
+### GET `/solicitacoes/gestor/{gestorId}/pendentes` — Fila compartilhada de pendências para gestores — `200` `List<SolicitacaoResponseDTO>`
+
+Retorna todas as solicitações pendentes, independentemente do gestor escolhido no envio.
+Qualquer gestor pode aprovar ou recusar uma solicitação da fila.
+O aceite cria a notícia e a torna visível para leitores. Recusar ou cancelar mantém somente a solicitação, sem criar notícia.
 
 ---
 

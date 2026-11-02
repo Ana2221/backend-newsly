@@ -10,6 +10,7 @@ import br.nite.newsly.exception.BusinessException;
 import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.mapper.DiretorMapper;
 import br.nite.newsly.repository.DiretorRepository;
+import br.nite.newsly.security.SecurityAccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +26,11 @@ public class DiretorService {
     private final ColaboradorService colaboradorService;
     private final FuncaoService funcaoService;
     private final DiretoriaService diretoriaService;
+    private final SecurityAccess securityAccess;
 
     @Transactional
     public DiretorResponseDTO criar(DiretorRequestDTO dto) {
+        requireOwnDirectorDependencies(dto.colaboradorId(), dto.funcaoId(), dto.diretoriaId());
         if (repository.existsByColaboradorId(dto.colaboradorId())) {
             throw new BusinessException("O colaborador já é diretor.");
         }
@@ -50,18 +53,24 @@ public class DiretorService {
 
     @Transactional(readOnly = true)
     public DiretorResponseDTO buscarPorId(Long id) {
+        requireOwnDiretorWhenResponsible(id);
         return mapper.toResponse(buscarEntidade(id));
     }
 
     @Transactional(readOnly = true)
     public List<DiretorResponseDTO> buscarTodos() {
-        return repository.findAll().stream()
+        List<Diretor> diretores = securityAccess.isCurrentResponsible()
+                ? repository.findAllByDiretoriaEmpresaId(securityAccess.currentCompanyId())
+                : repository.findAll();
+        return diretores.stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Transactional
     public DiretorResponseDTO atualizar(Long id, DiretorRequestDTO dto) {
+        requireOwnDiretorWhenResponsible(id);
+        requireOwnDirectorDependencies(null, dto.funcaoId(), dto.diretoriaId());
         Diretor entity = buscarEntidade(id);
 
         Funcao funcao = funcaoService.buscarEntidade(dto.funcaoId());
@@ -86,5 +95,22 @@ public class DiretorService {
     public Diretor buscarEntidade(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Diretor", id));
+    }
+
+    private void requireOwnDirectorDependencies(Long colaboradorId, Long funcaoId, Long diretoriaId) {
+        if (!securityAccess.isCurrentResponsible()) {
+            return;
+        }
+        if ((colaboradorId != null && !securityAccess.isOwnColaborador(colaboradorId))
+                || !securityAccess.isOwnFuncao(funcaoId)
+                || !securityAccess.isOwnDiretoria(diretoriaId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+        }
+    }
+
+    private void requireOwnDiretorWhenResponsible(Long id) {
+        if (securityAccess.isCurrentResponsible() && !securityAccess.isOwnDiretor(id)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+        }
     }
 }

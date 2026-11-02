@@ -30,6 +30,9 @@ public class Noticia {
     @Column(name = "publicada_em", nullable = false)
     private LocalDateTime publicadaEm;
 
+    @Column(name = "aprovada", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 1")
+    private boolean aprovada = true;
+
     @Column(name = "imagem_url", length = 500)
     private String imagemUrl;
 

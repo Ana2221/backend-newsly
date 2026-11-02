@@ -27,4 +27,8 @@ public class Funcao {
 
     @Column(name = "descricao", length = 500)
     private String descricao;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id")
+    private EmpresaJr empresa;
 }

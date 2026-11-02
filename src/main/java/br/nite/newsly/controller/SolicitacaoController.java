@@ -6,6 +6,8 @@ import br.nite.newsly.dto.response.SolicitacaoResponseDTO;
 import br.nite.newsly.service.SolicitacaoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,53 +22,98 @@ public class SolicitacaoController {
     private final SolicitacaoService service;
 
     @PostMapping
+    @PreAuthorize("hasRole('RESPONSAVEL') or hasRole('ADMIN')")
     public ResponseEntity<SolicitacaoResponseDTO> enviar(
-            @Valid @RequestBody SolicitacaoRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.enviar(dto));
+            @Valid @RequestBody SolicitacaoRequestDTO dto,
+            Authentication authentication) {
+        Long responsavelId = hasRole(authentication, "ROLE_ADMIN")
+                ? dto.responsavelId()
+                : Long.valueOf(authentication.getName());
+        SolicitacaoRequestDTO request = new SolicitacaoRequestDTO(
+                responsavelId,
+                dto.titulo(),
+                dto.conteudo(),
+                dto.publicadaEm(),
+                dto.empresaId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.enviar(request));
     }
 
     @PatchMapping("/{id}/aceitar")
-    public ResponseEntity<SolicitacaoResponseDTO> aceitar(@PathVariable Long id) {
-        return ResponseEntity.ok(service.aceitar(id));
+    @PreAuthorize("hasRole('GESTOR') or hasRole('ADMIN')")
+    public ResponseEntity<SolicitacaoResponseDTO> aceitar(
+            @PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(service.aceitar(id, authentication.getName(), hasRole(authentication, "ROLE_ADMIN")));
     }
 
     @PatchMapping("/{id}/recusar")
+    @PreAuthorize("hasRole('GESTOR') or hasRole('ADMIN')")
     public ResponseEntity<SolicitacaoResponseDTO> recusar(
             @PathVariable Long id,
-            @Valid @RequestBody(required = false) ResponderSolicitacaoRequestDTO dto) {
-        return ResponseEntity.ok(service.recusar(id, dto));
+            @Valid @RequestBody(required = false) ResponderSolicitacaoRequestDTO dto,
+            Authentication authentication) {
+        return ResponseEntity.ok(service.recusar(
+                id, dto, authentication.getName(), hasRole(authentication, "ROLE_ADMIN")));
     }
 
     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<SolicitacaoResponseDTO> cancelar(@PathVariable Long id) {
-        return ResponseEntity.ok(service.cancelar(id));
+    @PreAuthorize("hasRole('RESPONSAVEL') or hasRole('ADMIN')")
+    public ResponseEntity<SolicitacaoResponseDTO> cancelar(
+            @PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(service.cancelar(id, authentication.getName(), hasRole(authentication, "ROLE_ADMIN")));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SolicitacaoResponseDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(service.buscarPorId(id));
+    @PreAuthorize("hasRole('RESPONSAVEL') or hasRole('GESTOR') or hasRole('ADMIN')")
+    public ResponseEntity<SolicitacaoResponseDTO> buscarPorId(
+            @PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(service.buscarPorId(
+                id,
+                authentication.getName(),
+                hasRole(authentication, "ROLE_ADMIN"),
+                hasRole(authentication, "ROLE_GESTOR")));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SolicitacaoResponseDTO>> buscarTodos() {
         return ResponseEntity.ok(service.buscarTodos());
     }
 
     @GetMapping("/responsavel/{responsavelId}")
+    @PreAuthorize("hasRole('RESPONSAVEL') or hasRole('ADMIN')")
     public ResponseEntity<List<SolicitacaoResponseDTO>> buscarPorResponsavel(
-            @PathVariable Long responsavelId) {
+            @PathVariable Long responsavelId, Authentication authentication) {
+        if (!hasRole(authentication, "ROLE_ADMIN")
+                && !authentication.getName().equals(responsavelId.toString())) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+        }
         return ResponseEntity.ok(service.buscarPorResponsavel(responsavelId));
     }
 
     @GetMapping("/gestor/{gestorId}")
+    @PreAuthorize("hasRole('GESTOR') or hasRole('ADMIN')")
     public ResponseEntity<List<SolicitacaoResponseDTO>> buscarPorGestor(
-            @PathVariable Long gestorId) {
+            @PathVariable Long gestorId, Authentication authentication) {
+        if (!hasRole(authentication, "ROLE_ADMIN")
+                && !authentication.getName().equals(gestorId.toString())) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+        }
         return ResponseEntity.ok(service.buscarPorGestor(gestorId));
     }
 
     @GetMapping("/gestor/{gestorId}/pendentes")
+    @PreAuthorize("hasRole('GESTOR') or hasRole('ADMIN')")
     public ResponseEntity<List<SolicitacaoResponseDTO>> buscarPendentesPorGestor(
-            @PathVariable Long gestorId) {
-        return ResponseEntity.ok(service.buscarPendentesPorGestor(gestorId));
+            @PathVariable Long gestorId, Authentication authentication) {
+        if (!hasRole(authentication, "ROLE_ADMIN")
+                && !authentication.getName().equals(gestorId.toString())) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
+        }
+        return ResponseEntity.ok(service.buscarPendentesParaGestor());
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(role));
     }
 }

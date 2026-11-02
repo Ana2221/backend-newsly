@@ -22,11 +22,13 @@ public interface ResponsavelMapper {
     @Mapping(target = "matricula", expression = "java(UUID.randomUUID())")
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "administrador", ignore = true)
     Responsavel toEntity(ResponsavelRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "matricula", ignore = true)
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "administrador", ignore = true)
     void updateEntity(ResponsavelRequestDTO dto, @MappingTarget Responsavel entity);
 }

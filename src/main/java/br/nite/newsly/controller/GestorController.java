@@ -7,6 +7,7 @@ import br.nite.newsly.service.GestorService;
 import br.nite.newsly.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,21 +23,25 @@ public class GestorController {
     private final UsuarioService usuarioService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GestorResponseDTO> criar(@Valid @RequestBody GestorRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_LEITOR') or hasRole('RESPONSAVEL') or hasRole('ADMIN')")
     public ResponseEntity<GestorResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('PERM_LEITOR') or hasRole('RESPONSAVEL') or hasRole('ADMIN')")
     public ResponseEntity<List<GestorResponseDTO>> buscarTodos() {
         return ResponseEntity.ok(service.buscarTodos());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GestorResponseDTO> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody GestorRequestDTO dto) {
@@ -44,6 +49,7 @@ public class GestorController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);
         return ResponseEntity.noContent().build();
@@ -59,6 +65,7 @@ public class GestorController {
      * @return 200 com sumário dos usuários removidos, ou 409 se não há duplicatas.
      */
     @DeleteMapping("/deduplicar-usuarios")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DeduplicacaoResponseDTO> deduplicarUsuarios() {
         return ResponseEntity.ok(usuarioService.deduplicarUsuarios());
     }

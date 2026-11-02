@@ -10,7 +10,7 @@ import java.nio.file.Paths;
  * Expõe a pasta local "uploads" como recurso estático acessível via HTTP.
  *
  * Qualquer arquivo salvo em {user.dir}/uploads/ poderá ser acessado em:
- *   GET http://localhost:8080/uploads/{subpasta}/{arquivo}
+ *   GET https://backend-newsly.onrender.com/uploads/{subpasta}/{arquivo}
  *
  * Exemplos:
  *   GET /uploads/noticias/uuid.jpg

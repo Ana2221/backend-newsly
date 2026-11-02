@@ -20,10 +20,12 @@ public interface GestorMapper {
 
     @Mapping(target = "matricula", expression = "java(UUID.randomUUID())")
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "administrador", ignore = true)
     Gestor toEntity(GestorRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "matricula", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "administrador", ignore = true)
     void updateEntity(GestorRequestDTO dto, @MappingTarget Gestor entity);
 }

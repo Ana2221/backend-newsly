@@ -2,7 +2,9 @@ package br.nite.newsly.service;
 
 import br.nite.newsly.dto.request.ResponderSolicitacaoRequestDTO;
 import br.nite.newsly.dto.request.SolicitacaoRequestDTO;
+import br.nite.newsly.dto.request.NoticiaRequestDTO;
 import br.nite.newsly.dto.response.SolicitacaoResponseDTO;
+import br.nite.newsly.entity.EmpresaJr;
 import br.nite.newsly.entity.Gestor;
 import br.nite.newsly.entity.Noticia;
 import br.nite.newsly.entity.Responsavel;
@@ -12,6 +14,7 @@ import br.nite.newsly.exception.BusinessException;
 import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.repository.SolicitacaoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,20 +32,15 @@ public class SolicitacaoService {
 
     @Transactional
     public SolicitacaoResponseDTO enviar(SolicitacaoRequestDTO dto) {
-        if (repository.existsByNoticiaIdAndGestorIdAndStatus(
-                dto.noticiaId(), dto.gestorId(), StatusSolicitacao.PENDENTE)) {
-            throw new BusinessException(
-                    "Já existe uma solicitação pendente para esta notícia com este gestor.");
-        }
-
         Responsavel responsavel = responsavelService.buscarEntidade(dto.responsavelId());
-        Gestor gestor = gestorService.buscarEntidade(dto.gestorId());
-        Noticia noticia = noticiaService.buscarEntidade(dto.noticiaId());
+        EmpresaJr empresa = noticiaService.buscarEmpresaParaSubmissao(dto.empresaId());
 
         Solicitacao entity = new Solicitacao();
         entity.setResponsavel(responsavel);
-        entity.setGestor(gestor);
-        entity.setNoticia(noticia);
+        entity.setEmpresa(empresa);
+        entity.setTituloSubmetido(dto.titulo());
+        entity.setConteudoSubmetido(dto.conteudo());
+        entity.setPublicadaEmSubmetida(dto.publicadaEm());
         entity.setStatus(StatusSolicitacao.PENDENTE);
         entity.setCriadaEm(LocalDateTime.now());
 
@@ -50,18 +48,41 @@ public class SolicitacaoService {
     }
 
     @Transactional
-    public SolicitacaoResponseDTO aceitar(Long id) {
-        Solicitacao entity = buscarEntidade(id);
+    public SolicitacaoResponseDTO aceitar(Long id, String actorId, boolean administrador) {
+        Solicitacao entity = buscarEntidadeParaAtualizar(id);
         validarPendente(entity);
+        if (!administrador) {
+            entity.setGestor(gestorService.buscarEntidade(Long.valueOf(actorId)));
+        }
+        if (entity.getNoticia() == null) {
+            if (entity.getEmpresa() == null
+                    || entity.getTituloSubmetido() == null
+                    || entity.getConteudoSubmetido() == null
+                    || entity.getPublicadaEmSubmetida() == null) {
+                throw new BusinessException("A solicitação não contém os dados completos da notícia.");
+            }
+            NoticiaRequestDTO noticiaRequest = new NoticiaRequestDTO(
+                    entity.getTituloSubmetido(),
+                    entity.getConteudoSubmetido(),
+                    entity.getPublicadaEmSubmetida(),
+                    entity.getEmpresa().getId());
+            entity.setNoticia(noticiaService.criarAprovada(noticiaRequest));
+        } else {
+            noticiaService.aprovarPublicacao(entity.getNoticia().getId());
+        }
         entity.setStatus(StatusSolicitacao.ACEITA);
         entity.setRespondidaEm(LocalDateTime.now());
         return toResponse(repository.save(entity));
     }
 
     @Transactional
-    public SolicitacaoResponseDTO recusar(Long id, ResponderSolicitacaoRequestDTO dto) {
-        Solicitacao entity = buscarEntidade(id);
+    public SolicitacaoResponseDTO recusar(
+            Long id, ResponderSolicitacaoRequestDTO dto, String actorId, boolean administrador) {
+        Solicitacao entity = buscarEntidadeParaAtualizar(id);
         validarPendente(entity);
+        if (!administrador) {
+            entity.setGestor(gestorService.buscarEntidade(Long.valueOf(actorId)));
+        }
         entity.setStatus(StatusSolicitacao.RECUSADA);
         entity.setRespondidaEm(LocalDateTime.now());
         entity.setMotivoRecusa(dto != null ? dto.motivoRecusa() : null);
@@ -69,8 +90,9 @@ public class SolicitacaoService {
     }
 
     @Transactional
-    public SolicitacaoResponseDTO cancelar(Long id) {
-        Solicitacao entity = buscarEntidade(id);
+    public SolicitacaoResponseDTO cancelar(Long id, String actorId, boolean administrador) {
+        Solicitacao entity = buscarEntidadeParaAtualizar(id);
+        validarResponsavel(entity, actorId, administrador);
         validarPendente(entity);
         entity.setStatus(StatusSolicitacao.CANCELADA);
         entity.setRespondidaEm(LocalDateTime.now());
@@ -78,8 +100,17 @@ public class SolicitacaoService {
     }
 
     @Transactional(readOnly = true)
-    public SolicitacaoResponseDTO buscarPorId(Long id) {
-        return toResponse(buscarEntidade(id));
+    public SolicitacaoResponseDTO buscarPorId(
+            Long id, String actorId, boolean administrador, boolean gestor) {
+        Solicitacao entity = buscarEntidade(id);
+        boolean responsavel = entity.getResponsavel().getId().toString().equals(actorId);
+        boolean gestorResponsavel = entity.getGestor() != null
+                && entity.getGestor().getId().toString().equals(actorId);
+        boolean gestorConsultaPendente = gestor && entity.getStatus() == StatusSolicitacao.PENDENTE;
+        if (!administrador && !responsavel && !gestorResponsavel && !gestorConsultaPendente) {
+            throw new AccessDeniedException("Acesso não permitido.");
+        }
+        return toResponse(entity);
     }
 
     @Transactional(readOnly = true)
@@ -99,7 +130,12 @@ public class SolicitacaoService {
 
     @Transactional(readOnly = true)
     public List<SolicitacaoResponseDTO> buscarPendentesPorGestor(Long gestorId) {
-        return repository.findAllByGestorIdAndStatus(gestorId, StatusSolicitacao.PENDENTE)
+        return buscarPendentesParaGestor();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SolicitacaoResponseDTO> buscarPendentesParaGestor() {
+        return repository.findAllByStatus(StatusSolicitacao.PENDENTE)
                 .stream().map(this::toResponse).toList();
     }
 
@@ -111,8 +147,19 @@ public class SolicitacaoService {
         }
     }
 
+    private void validarResponsavel(Solicitacao entity, String actorId, boolean administrador) {
+        if (!administrador && !entity.getResponsavel().getId().toString().equals(actorId)) {
+            throw new AccessDeniedException("Acesso não permitido.");
+        }
+    }
+
     public Solicitacao buscarEntidade(Long id) {
         return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitação", id));
+    }
+
+    private Solicitacao buscarEntidadeParaAtualizar(Long id) {
+        return repository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitação", id));
     }
 
@@ -121,10 +168,16 @@ public class SolicitacaoService {
                 s.getId(),
                 s.getResponsavel().getId(),
                 s.getResponsavel().getNome(),
-                s.getGestor().getId(),
-                s.getGestor().getNome(),
-                s.getNoticia().getId(),
-                s.getNoticia().getTitulo(),
+                s.getGestor() != null ? s.getGestor().getId() : null,
+                s.getGestor() != null ? s.getGestor().getNome() : null,
+                s.getNoticia() != null ? s.getNoticia().getId() : null,
+                s.getNoticia() != null ? s.getNoticia().getTitulo() : s.getTituloSubmetido(),
+                s.getNoticia() != null ? s.getNoticia().getConteudo() : s.getConteudoSubmetido(),
+                s.getNoticia() != null ? s.getNoticia().getPublicadaEm() : s.getPublicadaEmSubmetida(),
+                s.getEmpresa() != null ? s.getEmpresa().getId()
+                        : s.getNoticia() != null ? s.getNoticia().getEmpresa().getId() : null,
+                s.getEmpresa() != null ? s.getEmpresa().getNome()
+                        : s.getNoticia() != null ? s.getNoticia().getEmpresa().getNome() : null,
                 s.getStatus(),
                 s.getCriadaEm(),
                 s.getRespondidaEm(),
