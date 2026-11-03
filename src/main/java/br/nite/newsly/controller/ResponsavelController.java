@@ -6,7 +6,9 @@ import br.nite.newsly.security.SecurityAccess;
 import br.nite.newsly.service.ResponsavelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +24,22 @@ public class ResponsavelController {
     private final SecurityAccess securityAccess;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponsavelResponseDTO> criar(@Valid @RequestBody ResponsavelRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
+    public ResponseEntity<ResponsavelResponseDTO> criar(
+            @Valid @RequestBody ResponsavelRequestDTO dto,
+            Authentication authentication) {
+        boolean administrador = authentication != null && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        if (!administrador
+                && (dto.empresaId() != null || (dto.permissoes() != null && !dto.permissoes().isEmpty()))) {
+            throw new AccessDeniedException(
+                    "O cadastro público de responsável não pode associar uma EJ ou definir permissões.");
+        }
+
+        ResponsavelRequestDTO request = administrador
+                ? dto
+                : new ResponsavelRequestDTO(dto.nome(), dto.senha(), dto.contato(), null, null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
     }
 
     @GetMapping("/{id}")

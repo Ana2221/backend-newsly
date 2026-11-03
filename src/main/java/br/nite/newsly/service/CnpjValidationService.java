@@ -24,7 +24,7 @@ public class CnpjValidationService {
     public CnpjValidationService(
             RestTemplateBuilder builder,
             @Value("${newsly.cnpj-validation.base-url:https://brasilapi.com.br/api/cnpj/v1}") String baseUrl,
-            @Value("${newsly.cnpj-validation.enabled:true}") boolean enabled) {
+            @Value("${newsly.cnpj-validation.enabled:false}") boolean enabled) {
         this(builder
                 .setConnectTimeout(Duration.ofSeconds(3))
                 .setReadTimeout(Duration.ofSeconds(5))

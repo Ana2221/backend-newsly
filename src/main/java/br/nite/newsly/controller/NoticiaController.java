@@ -5,7 +5,10 @@ import br.nite.newsly.dto.response.NoticiaResponseDTO;
 import br.nite.newsly.service.NoticiaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,14 +38,15 @@ public class NoticiaController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERM_LEITOR') or hasRole('RESPONSAVEL') or hasRole('ADMIN')")
-    public ResponseEntity<NoticiaResponseDTO> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<NoticiaResponseDTO> buscarPorId(
+            @PathVariable Long id, Authentication authentication) {
+        requirePublicOrReader(authentication);
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PERM_LEITOR') or hasRole('RESPONSAVEL') or hasRole('ADMIN')")
-    public ResponseEntity<List<NoticiaResponseDTO>> buscarTodos() {
+    public ResponseEntity<List<NoticiaResponseDTO>> buscarTodos(Authentication authentication) {
+        requirePublicOrReader(authentication);
         return ResponseEntity.ok(service.buscarTodos());
     }
 
@@ -59,5 +63,19 @@ public class NoticiaController {
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private void requirePublicOrReader(Authentication authentication) {
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return;
+        }
+        boolean canRead = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_COLABORADOR")
+                        || authority.getAuthority().equals("ROLE_RESPONSAVEL")
+                        || authority.getAuthority().equals("ROLE_ADMIN")
+                        || authority.getAuthority().equals("PERM_LEITOR"));
+        if (!canRead) {
+            throw new AccessDeniedException("Acesso não permitido.");
+        }
     }
 }

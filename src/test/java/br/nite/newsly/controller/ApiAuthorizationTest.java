@@ -42,9 +42,20 @@ class ApiAuthorizationTest {
     private NoticiaService noticiaService;
 
     @Test
-    void bloqueiaConsultaSemToken() throws Exception {
+    void usuarioAnonimoPodeConsultarNoticiasPublicadas() throws Exception {
         mockMvc.perform(get("/noticias"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
+
+        verify(noticiaService).buscarTodos();
+    }
+
+    @Test
+    void colaboradorPodeConsultarNoticiasPublicadas() throws Exception {
+        when(noticiaService.buscarTodos()).thenReturn(List.of());
+
+        mockMvc.perform(get("/noticias")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("ROLE_COLABORADOR")))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -60,6 +71,41 @@ class ApiAuthorizationTest {
     void leitorNaoPodeCriarNoticia() throws Exception {
         mockMvc.perform(post("/noticias")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("PERM_LEITOR"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "titulo": "Teste",
+                                  "conteudo": "Conteúdo de teste",
+                                  "publicadaEm": "2026-10-30T12:00:00",
+                                  "empresaId": 1
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(noticiaService);
+    }
+
+    @Test
+    void usuarioAnonimoNaoPodeCriarNoticiaDiretamente() throws Exception {
+        mockMvc.perform(post("/noticias")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "titulo": "Teste",
+                                  "conteudo": "Conteúdo de teste",
+                                  "publicadaEm": "2026-10-30T12:00:00",
+                                  "empresaId": 1
+                                }
+                                """))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(noticiaService);
+    }
+
+    @Test
+    void colaboradorNaoPodeCriarNoticiaDiretamente() throws Exception {
+        mockMvc.perform(post("/noticias")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("ROLE_COLABORADOR"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

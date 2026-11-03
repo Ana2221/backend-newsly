@@ -33,8 +33,20 @@ public class UsuarioAdapterService {
         boolean administrador = authentication != null && authentication.isAuthenticated()
                 && authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
-        if (dto.tipo() != br.nite.newsly.enums.TipoUsuario.USUARIO && !administrador) {
+        boolean cadastroPublicoPermitido = dto.tipo() == br.nite.newsly.enums.TipoUsuario.USUARIO
+                || dto.tipo() == br.nite.newsly.enums.TipoUsuario.COLABORADOR
+                || dto.tipo() == br.nite.newsly.enums.TipoUsuario.RESPONSAVEL;
+        if (!cadastroPublicoPermitido && !administrador) {
             throw new AccessDeniedException("Somente um administrador pode criar perfis privilegiados.");
+        }
+        if (dto.tipo() == br.nite.newsly.enums.TipoUsuario.COLABORADOR
+                && !administrador && dto.empresaId() != null) {
+            throw new AccessDeniedException("O cadastro público de colaborador não pode associar uma EJ.");
+        }
+        if (dto.tipo() == br.nite.newsly.enums.TipoUsuario.RESPONSAVEL && !administrador
+                && (dto.empresaId() != null || (dto.permissoes() != null && !dto.permissoes().isEmpty()))) {
+            throw new AccessDeniedException(
+                    "O cadastro público de responsável não pode associar uma EJ ou definir permissões.");
         }
 
         return switch (dto.tipo()) {
@@ -52,7 +64,7 @@ public class UsuarioAdapterService {
                         dto.senha(),
                         dto.contato(),
                         true,
-                        dto.empresaId()
+                        administrador ? dto.empresaId() : null
                 );
                 yield CriarUsuarioResponseDTO.deColaborador(colaboradorService.criar(request));
             }
@@ -70,8 +82,8 @@ public class UsuarioAdapterService {
                         dto.nome(),
                         dto.senha(),
                         dto.contato(),
-                        dto.permissoes(),
-                        dto.empresaId()
+                        administrador ? dto.permissoes() : null,
+                        administrador ? dto.empresaId() : null
                 );
                 yield CriarUsuarioResponseDTO.deResponsavel(responsavelService.criar(request));
             }

@@ -25,6 +25,7 @@ br\nite\newsly\mapper\FuncaoMapper.class
 br\nite\newsly\mapper\EmpresaJrMapper.class
 br\nite\newsly\dto\request\ConfigurationsRequestDTO.class
 br\nite\newsly\dto\response\UsuarioResponseDTO.class
+br\nite\newsly\configuration\SolicitacaoSchemaMigration.class
 br\nite\newsly\controller\SolicitacaoController.class
 br\nite\newsly\configuration\SecurityConfiguration.class
 br\nite\newsly\repository\NoticiaRepository.class

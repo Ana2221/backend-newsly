@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,6 +33,7 @@ public class ResponsavelService {
 
         Responsavel entity = mapper.toEntity(dto);
         entity.setSenha(passwordEncoder.encode(dto.senha()));
+        entity.setPermissoes(dto.permissoes() != null ? dto.permissoes() : new ArrayList<>());
 
         if (dto.empresaId() != null) {
             EmpresaJr empresa = empresaJrService.buscarEntidade(dto.empresaId());

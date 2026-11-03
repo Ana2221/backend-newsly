@@ -22,7 +22,7 @@ com a API REST do sistema Newsly (backend Spring Boot).
 - Obtenha `ADMIN_EMAIL` e `ADMIN_PASSWORD` do armazenamento seguro do ambiente de teste; nunca grave essas credenciais em arquivos ou logs.
 - Faça login com a conta bootstrap antes dos cenários protegidos. Envie `Authorization: Bearer {accessToken}` em toda chamada protegida.
 - Use `API_BASE_URL` para substituir o host das URLs de exemplo abaixo.
-- Cadastro público aceita somente `tipo: "USUARIO"`; criação de `COLABORADOR`, `GESTOR` e `RESPONSAVEL` requer o token de ADMIN.
+- Cadastro público aceita `tipo: "USUARIO"`, `"COLABORADOR"` e `"RESPONSAVEL"`; cadastros públicos de colaborador/responsável ficam sem EJ. Criação de `GESTOR`, associação de EJ ou definição de permissões do responsável requer token de ADMIN.
 
 ## Seu objetivo
 
@@ -453,10 +453,10 @@ POST https://backend-newsly.onrender.com/funcoes
 { "descricao": "sem nome" }
 Esperado: 400 | errors[] contém { field: "nome", message: "Nome é obrigatório" }
 
-### Teste 6.3 — CNPJ com formato inválido
+### Teste 6.3 — CNPJ repetido
 POST https://backend-newsly.onrender.com/empresas
-{ "nome": "Teste", "cnpj": "00000000000000", "responsavelId": 1 }
-Esperado: 400 | errors[] contém { field: "cnpj" }
+{ "nome": "Teste", "cnpj": "12.345.678/0001-90", "responsavelId": 1 }
+Esperado: 409 | CNPJ já cadastrado
 
 ---
 

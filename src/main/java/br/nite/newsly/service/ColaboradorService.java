@@ -47,7 +47,7 @@ public class ColaboradorService {
     @Transactional(readOnly = true)
     public List<ColaboradorResponseDTO> buscarTodos() {
         List<Colaborador> colaboradores = securityAccess.isCurrentResponsible()
-                ? repository.findAllByEmpresaId(securityAccess.currentCompanyId())
+                ? repository.findAllByEmpresaIdOrEmpresaIsNull(securityAccess.currentCompanyId())
                 : repository.findAll();
         return colaboradores.stream()
                 .map(mapper::toResponse)

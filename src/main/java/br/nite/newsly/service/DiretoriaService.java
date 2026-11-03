@@ -62,8 +62,7 @@ public class DiretoriaService {
                 Funcao funcao = funcaoRepository.findById(dirDto.funcaoId())
                         .orElseThrow(() -> new ResourceNotFoundException("Função", dirDto.funcaoId()));
                 if (securityAccess.isCurrentResponsible()
-                        && (!dto.empresaId().equals(colaborador.getEmpresa() == null
-                                ? null : colaborador.getEmpresa().getId())
+                        && (!securityAccess.isOwnOrUnassignedColaborador(colaborador.getId())
                         || !securityAccess.isOwnFuncao(funcao.getId()))) {
                     throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");
                 }

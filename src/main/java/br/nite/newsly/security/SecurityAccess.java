@@ -101,6 +101,12 @@ public class SecurityAccess {
         return colaboradorRepository.existsByIdAndEmpresaId(colaboradorId, currentCompanyId());
     }
 
+    public boolean isOwnOrUnassignedColaborador(Long colaboradorId) {
+        Long empresaId = currentCompanyId();
+        return colaboradorRepository.existsByIdAndEmpresaId(colaboradorId, empresaId)
+                || colaboradorRepository.existsByIdAndEmpresaIsNull(colaboradorId);
+    }
+
     public boolean isOwnDiretoria(Long diretoriaId) {
         return diretoriaRepository.existsByIdAndEmpresaId(diretoriaId, currentCompanyId());
     }

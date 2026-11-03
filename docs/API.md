@@ -48,7 +48,8 @@ Erros de validação incluem o campo `errors`:
 
 ## Autenticação e autorização
 
-Todas as rotas exigem um JWT Bearer, exceto `POST /usuarios`, `POST /usuarios/login` e `GET /uploads/**`.
+Todas as rotas exigem um JWT Bearer, exceto `POST /usuarios`, `POST /usuarios/login`, `POST /responsaveis`, `GET /noticias`, `GET /noticias/{id}`, `GET /empresas`, `GET /empresas/{id}` e `GET /uploads/**`.
+Leituras públicas de notícias retornam somente notícias publicadas. Leituras públicas de empresas retornam apenas nome, CNPJ, descrição e logo; os demais dados da empresa exigem autenticação autorizada.
 Após o login, envie o token nas chamadas protegidas:
 
 Para orientações de armazenamento do token, ciclo de sessão, tratamento de `401`/`403` e matriz de acesso por perfil, consulte [SEGURANCA_FRONTEND.md](./SEGURANCA_FRONTEND.md).
@@ -81,7 +82,7 @@ Política de acesso:
 - Somente `ADMIN` pode criar EJs e gerenciar contas e dados globais.
 - Somente `GESTOR` pode aceitar/recusar solicitações.
 - `RESPONSAVEL` pode criar e cancelar solicitações próprias; gestores e responsáveis só consultam solicitações associadas a si.
-- A criação pública em `POST /usuarios` aceita somente `tipo: "USUARIO"`. Somente `ADMIN` pode criar os demais tipos.
+- A criação pública em `POST /usuarios` aceita `tipo: "USUARIO"`, `tipo: "COLABORADOR"` ou `tipo: "RESPONSAVEL"`. Colaboradores e responsáveis criados publicamente ficam sem EJ; o próprio usuário não pode escolher empresa nem permissões de responsável. Somente `ADMIN` pode criar `GESTOR`, associar uma EJ ou definir permissões no cadastro.
 
 Para o responsável, `GET` de listas retorna somente os registros da EJ vinculada ao seu usuário. IDs de outros registros não autorizam acesso: consultas e alterações por ID também verificam a EJ proprietária. Operações `DELETE` continuam exclusivas de `ADMIN`.
 
@@ -131,18 +132,20 @@ Cria um usuário do tipo informado no campo `tipo`.
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `tipo` | `TipoUsuario` | ✅ | Cadastro público: `USUARIO`. `ADMIN` pode criar `COLABORADOR`, `GESTOR` e `RESPONSAVEL` |
+| `tipo` | `TipoUsuario` | ✅ | Cadastro público: `USUARIO`, `COLABORADOR` ou `RESPONSAVEL`. `ADMIN` também pode criar `GESTOR` |
 | `nome` | `String` | ✅ | Máx. 150 caracteres |
 | `senha` | `String` | ✅ | Entre 6 e 255 caracteres |
 | `contato.telefone` | `String` | ❌ | Máx. 20 caracteres |
 | `contato.email` | `String` | ❌ | Formato de e-mail válido |
 | `atividade` | `Boolean` | ⚠️ | Obrigatório se `tipo = COLABORADOR` |
-| `empresaId` | `Long` | ❌ | Obrigatório para `COLABORADOR` e `RESPONSAVEL` |
+| `empresaId` | `Long` | ❌ | Cadastro público de `COLABORADOR` e `RESPONSAVEL` não aceita EJ; apenas `ADMIN` pode associar uma EJ no cadastro |
 | `permissoes` | `List<Permissao>` | ❌ | `LEITOR`, `ESCRITOR`. Usado por `GESTOR` e `RESPONSAVEL` |
+
+Responsáveis criados publicamente começam sem empresa e sem permissões; um administrador precisa associá-los a uma EJ antes que possam operar recursos dela.
 
 **Responses:**
 - `201` — `CriarUsuarioResponseDTO` com o campo do tipo criado preenchido
-- `403` — tentativa sem privilégios de criar um tipo diferente de `USUARIO`
+- `403` — tentativa sem privilégios de criar `GESTOR`, associar EJ ou definir permissões no cadastro público
 
 ---
 
@@ -188,6 +191,9 @@ Autentica o usuário e retorna os dados do tipo real.
 **Responses:** `201` — `ColaboradorResponseDTO`
 
 ### GET `/colaboradores` — `200` `List<ColaboradorResponseDTO>`
+
+Para `RESPONSAVEL`, retorna colaboradores da própria EJ e colaboradores ainda sem EJ. Colaboradores de outras EJs não são retornados. A consulta não altera o vínculo `empresaId`.
+
 ### GET `/colaboradores/{id}` — `200` `ColaboradorResponseDTO` / `404`
 ### PUT `/colaboradores/{id}` — `200` `ColaboradorResponseDTO` / `404`
 ### DELETE `/colaboradores/{id}` — `204` / `404`
@@ -220,6 +226,7 @@ Autentica o usuário e retorna os dados do tipo real.
 ## Responsáveis `/responsaveis`
 
 ### POST `/responsaveis`
+Público para criar uma conta sem EJ e sem permissões. Somente `ADMIN` pode informar `empresaId` ou `permissoes`.
 
 **Request Body:**
 ```json
@@ -261,15 +268,15 @@ Autentica o usuário e retorna os dados do tipo real.
 | Campo | Tipo | Obrigatório | Validação |
 |-------|------|-------------|-----------|
 | `nome` | `String` | ✅ | Máx. 150 caracteres |
-| `cnpj` | `String` | ✅ | Obrigatório; fora do perfil `test`, consultado na BrasilAPI |
+| `cnpj` | `String` | ✅ | Obrigatório; consulta à BrasilAPI opcional e desabilitada por padrão |
 | `contato.email` | `String` | ✅ | E-mail válido e único entre empresas |
 | `responsavelId` | `Long` | Para administrador | Ignorado para responsável autenticado |
 
 **Responses:** `201` — `EmpresaJrResponseDTO`
-> `400` se o CNPJ estiver ausente, for inválido na BrasilAPI ou o e-mail estiver ausente.
+> `400` se o CNPJ estiver ausente ou duplicado, ou o e-mail estiver ausente. Se a validação opcional estiver habilitada, CNPJ inválido também retorna `400`.
 > `409` se o CNPJ ou e-mail já estiver cadastrado ou o responsável já possuir empresa.
-> `503` se a BrasilAPI estiver indisponível.
-> No perfil `test`, qualquer CNPJ não vazio é aceito sem consulta externa ou validação de formato.
+> `503` se a validação da BrasilAPI estiver habilitada e o serviço estiver indisponível.
+> Por padrão, qualquer CNPJ não vazio e não duplicado é aceito sem validação externa de formato. Para habilitar consulta à BrasilAPI, configure `NEWSLY_CNPJ_VALIDATION_ENABLED=true`.
 
 ---
 
@@ -296,8 +303,8 @@ Adiciona um colaborador à empresa.
 
 ---
 
-### GET `/empresas` — `200` `List<EmpresaJrResponseDTO>`
-### GET `/empresas/{id}` — `200` `EmpresaJrResponseDTO` / `404`
+### GET `/empresas` — `200` (público) `List<EmpresaJrResponseDTO>` ou resumo público
+### GET `/empresas/{id}` — `200` (público) `EmpresaJrResponseDTO` ou resumo público / `404`
 ### PUT `/empresas/{id}` — `200` `EmpresaJrResponseDTO` / `404`
 ### DELETE `/empresas/{id}` — `204` / `404`
 
@@ -317,6 +324,8 @@ Adiciona um colaborador à empresa.
   "noticias": [ ... ]
 }
 ```
+
+As consultas de empresas são públicas. Sem login e para colaboradores, a resposta é `EmpresaJrPublicaResponseDTO`, contendo somente `id`, `nome`, `cnpj`, `descricao` e `logoUrl`; dados de contato, responsável, colaboradores, diretorias, configurações e notícias continuam restritos a perfis autenticados autorizados. Todas as empresas cadastradas são listadas, pois o modelo não possui um campo de publicação.
 
 ---
 
@@ -428,8 +437,8 @@ Upload da imagem da notícia.
 
 ---
 
-### GET `/noticias` — `200` `List<NoticiaResponseDTO>`
-### GET `/noticias/{id}` — `200` `NoticiaResponseDTO` / `404`
+### GET `/noticias` — `200` (público; somente publicadas) `List<NoticiaResponseDTO>`
+### GET `/noticias/{id}` — `200` (público; somente publicadas) `NoticiaResponseDTO` / `404`
 ### PUT `/noticias/{id}` — `200` `NoticiaResponseDTO` / `404`
 ### DELETE `/noticias/{id}` — `204` / `404`
 

@@ -1,5 +1,5 @@
 -- ============================================================
--- SEED — newsly_db
+-- SEED — newsly
 -- Ordem: respeita todas as FKs (sem empresa ainda nos usuarios)
 -- UUID armazenado como BINARY(16) via UNHEX(REPLACE(...,'-',''))
 -- ============================================================

@@ -110,16 +110,18 @@ As permissões do diretor são incluídas no token quando ele faz login. Para re
 | Rotas | Consulta | Criação/alteração/exclusão |
 |---|---|---|
 | `POST /usuarios/login` | Pública | — |
-| `POST /usuarios` | Pública somente para `tipo: "USUARIO"` | Tipos `COLABORADOR`, `GESTOR` e `RESPONSAVEL` exigem `ADMIN`. |
+| `POST /usuarios` | Pública para `USUARIO`, `COLABORADOR` e `RESPONSAVEL`; colaborador/responsável públicos ficam sem EJ | `GESTOR` exige `ADMIN`; associação de EJ e permissões de responsável exigem ADMIN. |
 | `GET /usuarios/{id}` | Próprio usuário ou `ADMIN` | — |
 | `GET /usuarios` | `ADMIN` | — |
 | `PUT/DELETE /usuarios/{id}` | — | `ADMIN` |
-| `/colaboradores` | `LEITOR` ou `ADMIN`; responsável só consulta a própria EJ | `ADMIN` ou responsável da EJ para criar/editar dentro da própria EJ |
+| `/colaboradores` | `LEITOR` ou `ADMIN`; responsável consulta a própria EJ e colaboradores sem EJ (nunca de outra EJ) | `ADMIN` ou responsável da EJ para criar/editar dentro da própria EJ |
 | `/gestores` | `LEITOR`, `RESPONSAVEL` ou `ADMIN` | `ADMIN` |
-| `/responsaveis` | `LEITOR` ou `ADMIN`; responsável só consulta o próprio perfil | `ADMIN` |
-| `/empresas` | `LEITOR` ou `ADMIN`; responsável só consulta a própria EJ | `ADMIN` cria; `ADMIN` ou responsável da EJ edita e envia logo/adiciona membros na própria EJ |
+| `POST /responsaveis` | Pública para criar responsável sem EJ/permissões; somente `ADMIN` pode informar esses campos | `ADMIN` pode associar EJ e definir permissões |
+| Demais `/responsaveis` | `LEITOR` ou `ADMIN`; responsável só consulta o próprio perfil | `ADMIN` |
+| `GET /empresas`, `GET /empresas/{id}` | Público; usuário anônimo e colaborador recebem resumo com dados institucionais básicos. Responsável só consulta a própria EJ; perfis autorizados podem consultar detalhes | `ADMIN` cria; `ADMIN` ou responsável da EJ edita e envia logo/adiciona membros na própria EJ |
 | `/diretorias`, `/diretores`, `/funcoes` | `LEITOR` ou `ADMIN`; responsável só consulta itens da própria EJ | `ADMIN` ou responsável da EJ cria/edita; `DELETE` somente ADMIN |
-| `/noticias`, `/comentarios` | `LEITOR` ou `ADMIN`; responsável só consulta conteúdo da própria EJ | `ESCRITOR`, `ADMIN` ou responsável da EJ cria/edita dentro da própria EJ; `DELETE` não é permitido ao responsável |
+| `GET /noticias`, `GET /noticias/{id}` | Público para notícias publicadas; `LEITOR`, `RESPONSAVEL` e `ADMIN` mantêm suas consultas autorizadas | — |
+| Demais `/noticias`, `/comentarios` | `LEITOR` ou `ADMIN`; responsável só consulta conteúdo da própria EJ | `ESCRITOR`, `ADMIN` ou responsável da EJ cria/edita dentro da própria EJ; `DELETE` não é permitido ao responsável |
 | `POST /solicitacoes` | — | `RESPONSAVEL` ou `ADMIN`; para `RESPONSAVEL`, o backend usa o ID do token. |
 | Aceitar/recusar solicitação | — | `GESTOR` ou `ADMIN`; gestor só pode responder à solicitação dirigida a ele. |
 | Cancelar solicitação | — | `RESPONSAVEL` ou `ADMIN`; responsável só pode cancelar a própria solicitação. |
@@ -134,7 +136,7 @@ Os endpoints de função agora associam o cargo a uma EJ pelo campo `empresaId`.
 
 **Observação sobre imagens:** `GET /uploads/**` continua público para permitir renderização direta em `<img>`. O isolamento do responsável aplica-se aos registros e operações da API; arquivos cujo endereço seja conhecido continuam acessíveis sem token.
 
-Cadastro público de conta `USUARIO` não cria automaticamente uma sessão nem concede permissões de leitura/escrita. Não tente cadastrar um perfil `ADMIN` pelo frontend: a conta administrativa é provisionada no backend por configuração operacional.
+Cadastro público de contas `USUARIO`, `COLABORADOR` e `RESPONSAVEL` não cria automaticamente uma sessão nem concede permissões de leitura/escrita. Um responsável público precisa ser associado a uma EJ por um administrador antes de operar recursos da empresa. Não tente cadastrar um perfil `ADMIN` pelo frontend: a conta administrativa é provisionada no backend por configuração operacional.
 
 ## 6. Tratamento de respostas de segurança
 

@@ -91,7 +91,10 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/usuarios", "/usuarios/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/usuarios", "/usuarios/login", "/responsaveis")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/noticias", "/noticias/**", "/empresas", "/empresas/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**","/swagger-ui/index.html").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions

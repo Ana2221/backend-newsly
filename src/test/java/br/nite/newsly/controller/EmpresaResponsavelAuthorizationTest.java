@@ -2,6 +2,7 @@ package br.nite.newsly.controller;
 
 import br.nite.newsly.configuration.SecurityConfiguration;
 import br.nite.newsly.dto.response.EmpresaJrResponseDTO;
+import br.nite.newsly.dto.response.EmpresaJrPublicaResponseDTO;
 import br.nite.newsly.security.SecurityAccess;
 import br.nite.newsly.service.EmpresaJrService;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EmpresaJrController.class)
@@ -46,11 +48,66 @@ class EmpresaResponsavelAuthorizationTest {
     private SecurityAccess securityAccess;
 
     @Test
-    void responsavelNaoPodeConsultarOutraEmpresa() throws Exception {
-        when(securityAccess.isOwnEmpresa(99L)).thenReturn(false);
+    void usuarioAnonimoPodeConsultarEmpresaCadastradaPorId() throws Exception {
+        when(empresaService.buscarResumoPublicoPorId(99L)).thenReturn(
+                new EmpresaJrPublicaResponseDTO(99L, "Empresa pública", "11.222.333/0001-81",
+                        "Descrição pública", null));
 
-        mockMvc.perform(get("/empresas/99")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("ROLE_RESPONSAVEL")))
+        mockMvc.perform(get("/empresas/99"))
+                .andExpect(status().isOk());
+
+        verify(empresaService).buscarResumoPublicoPorId(99L);
+        verify(empresaService, never()).buscarPorId(99L);
+    }
+
+    @Test
+    void usuarioAnonimoPodeConsultarListaDeEmpresas() throws Exception {
+        when(empresaService.buscarResumosPublicos()).thenReturn(List.of(
+                new EmpresaJrPublicaResponseDTO(99L, "Empresa pública", "11.222.333/0001-81",
+                        "Descrição pública", null)));
+
+        mockMvc.perform(get("/empresas"))
+                .andExpect(status().isOk());
+
+        verify(empresaService).buscarResumosPublicos();
+    }
+
+    @Test
+    void respostaPublicaNaoExpõeContatoOuMembros() throws Exception {
+        when(empresaService.buscarResumoPublicoPorId(99L)).thenReturn(
+                new EmpresaJrPublicaResponseDTO(99L, "Empresa pública", "11.222.333/0001-81",
+                        "Descrição pública", null));
+
+        mockMvc.perform(get("/empresas/99"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Empresa pública"))
+                .andExpect(jsonPath("$.contato").doesNotExist())
+                .andExpect(jsonPath("$.colaboradores").doesNotExist())
+                .andExpect(jsonPath("$.responsavel").doesNotExist());
+    }
+
+    @Test
+    void colaboradorPodeConsultarResumoPublicoDeEmpresas() throws Exception {
+        when(empresaService.buscarResumosPublicos()).thenReturn(List.of());
+
+        mockMvc.perform(get("/empresas")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("ROLE_COLABORADOR")))
+                .andExpect(status().isOk());
+
+        verify(empresaService).buscarResumosPublicos();
+    }
+
+    @Test
+    void colaboradorNaoPodeCadastrarEmpresa() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/empresas")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("ROLE_COLABORADOR"))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Empresa teste",
+                                  "cnpj": "12.345.678/0001-90"
+                                }
+                                """))
                 .andExpect(status().isForbidden());
 
         verifyNoInteractions(empresaService);
@@ -58,6 +115,7 @@ class EmpresaResponsavelAuthorizationTest {
 
     @Test
     void responsavelPodeConsultarPropriaEmpresa() throws Exception {
+        when(securityAccess.isCurrentResponsible()).thenReturn(true);
         when(securityAccess.isOwnEmpresa(42L)).thenReturn(true);
         when(empresaService.buscarPorId(42L)).thenReturn(
                 new EmpresaJrResponseDTO(42L, "Minha EJ", "11.222.333/0001-81",
@@ -68,6 +126,19 @@ class EmpresaResponsavelAuthorizationTest {
                 .andExpect(status().isOk());
 
         verify(empresaService).buscarPorId(42L);
+    }
+
+    @Test
+    void responsavelNaoPodeConsultarEmpresaDeOutraEj() throws Exception {
+        when(securityAccess.isCurrentResponsible()).thenReturn(true);
+        when(securityAccess.isOwnEmpresa(99L)).thenReturn(false);
+
+        mockMvc.perform(get("/empresas/99")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token("ROLE_RESPONSAVEL")))
+                .andExpect(status().isForbidden());
+
+        verify(empresaService, never()).buscarPorId(99L);
+        verify(empresaService, never()).buscarResumoPublicoPorId(99L);
     }
 
     @Test

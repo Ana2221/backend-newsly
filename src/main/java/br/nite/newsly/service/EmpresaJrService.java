@@ -3,6 +3,7 @@ package br.nite.newsly.service;
 import br.nite.newsly.dto.request.EmpresaJrRequestDTO;
 import br.nite.newsly.dto.request.ContatoRequestDTO;
 import br.nite.newsly.dto.response.EmpresaJrResponseDTO;
+import br.nite.newsly.dto.response.EmpresaJrPublicaResponseDTO;
 import br.nite.newsly.entity.Colaborador;
 import br.nite.newsly.entity.EmpresaJr;
 import br.nite.newsly.entity.Responsavel;
@@ -88,6 +89,18 @@ public class EmpresaJrService {
         return mapper.toResponse(buscarEntidade(id));
     }
 
+    @Transactional(readOnly = true)
+    public EmpresaJrPublicaResponseDTO buscarResumoPublicoPorId(Long id) {
+        return resumoPublico(buscarEntidade(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmpresaJrPublicaResponseDTO> buscarResumosPublicos() {
+        return repository.findAll().stream()
+                .map(this::resumoPublico)
+                .toList();
+    }
+
     @Transactional
     public void adicionarMembro(Long colaboradorId, Long empresaId) {
         requireOwnCompanyWhenResponsible(empresaId);
@@ -167,5 +180,14 @@ public class EmpresaJrService {
             throw new IllegalArgumentException("O e-mail de contato da empresa é obrigatório.");
         }
         return contato.email().trim().toLowerCase(Locale.ROOT);
+    }
+
+    private EmpresaJrPublicaResponseDTO resumoPublico(EmpresaJr empresa) {
+        return new EmpresaJrPublicaResponseDTO(
+                empresa.getId(),
+                empresa.getNome(),
+                empresa.getCnpj(),
+                empresa.getDescricao(),
+                empresa.getLogoUrl());
     }
 }

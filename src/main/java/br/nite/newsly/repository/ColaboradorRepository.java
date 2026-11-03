@@ -15,7 +15,11 @@ public interface ColaboradorRepository extends JpaRepository<Colaborador, Long> 
 
     List<Colaborador> findAllByEmpresaId(Long empresaId);
 
+    List<Colaborador> findAllByEmpresaIdOrEmpresaIsNull(Long empresaId);
+
     boolean existsByMatricula(UUID matricula);
 
     boolean existsByIdAndEmpresaId(Long id, Long empresaId);
+
+    boolean existsByIdAndEmpresaIsNull(Long id);
 }

@@ -101,7 +101,7 @@ public class DiretorService {
         if (!securityAccess.isCurrentResponsible()) {
             return;
         }
-        if ((colaboradorId != null && !securityAccess.isOwnColaborador(colaboradorId))
+        if ((colaboradorId != null && !securityAccess.isOwnOrUnassignedColaborador(colaboradorId))
                 || !securityAccess.isOwnFuncao(funcaoId)
                 || !securityAccess.isOwnDiretoria(diretoriaId)) {
             throw new org.springframework.security.access.AccessDeniedException("Acesso não permitido.");

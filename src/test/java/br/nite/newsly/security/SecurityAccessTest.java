@@ -58,13 +58,39 @@ class SecurityAccessTest {
         assertThrows(AccessDeniedException.class, access::currentCompanyId);
     }
 
+    @Test
+    void responsavelPodeUsarColaboradorDaPropriaEmpresaOuSemEmpresa() {
+        ResponsavelRepository responsavelRepository = mock(ResponsavelRepository.class);
+        ColaboradorRepository colaboradorRepository = mock(ColaboradorRepository.class);
+        SecurityAccess access = createAccess(
+                responsavelRepository, mock(EmpresaJrRepository.class), colaboradorRepository);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "7", "token", List.of(new SimpleGrantedAuthority("ROLE_RESPONSAVEL"))));
+        when(responsavelRepository.findEmpresaIdById(7L)).thenReturn(Optional.of(42L));
+        when(colaboradorRepository.existsByIdAndEmpresaId(10L, 42L)).thenReturn(true);
+        when(colaboradorRepository.existsByIdAndEmpresaIsNull(11L)).thenReturn(true);
+
+        assertTrue(access.isOwnOrUnassignedColaborador(10L));
+        assertTrue(access.isOwnOrUnassignedColaborador(11L));
+        assertFalse(access.isOwnOrUnassignedColaborador(12L));
+        verify(colaboradorRepository, never()).existsByIdAndEmpresaIsNull(10L);
+    }
+
     private SecurityAccess createAccess(
             ResponsavelRepository responsavelRepository,
             EmpresaJrRepository empresaRepository) {
+        return createAccess(responsavelRepository, empresaRepository, mock(ColaboradorRepository.class));
+    }
+
+    private SecurityAccess createAccess(
+            ResponsavelRepository responsavelRepository,
+            EmpresaJrRepository empresaRepository,
+            ColaboradorRepository colaboradorRepository) {
         return new SecurityAccess(
                 responsavelRepository,
                 empresaRepository,
-                mock(ColaboradorRepository.class),
+                colaboradorRepository,
                 mock(DiretoriaRepository.class),
                 mock(DiretorRepository.class),
                 mock(NoticiaRepository.class),

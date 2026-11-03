@@ -257,7 +257,7 @@ O frontend precisa buscar previamente:
 
 ```
 GET /empresas       → para escolher a empresa (usa id e nome)
-GET /colaboradores  → para escolher os membros (usa id e nome)
+GET /colaboradores  → para escolher os membros (usa id e nome); para RESPONSAVEL, inclui colaboradores da própria EJ e sem EJ, sem alterar empresaId
 GET /funcoes        → para escolher os cargos (usa id e nome)
 ```
 
