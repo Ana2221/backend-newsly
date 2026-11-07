@@ -115,6 +115,7 @@ br\nite\newsly\mapper\ComentarioMapper.class
 br\nite\newsly\service\BootstrapAdminService.class
 br\nite\newsly\mapper\DiretorResumoMapperImpl.class
 br\nite\newsly\controller\ResponsavelController.class
+br\nite\newsly\dto\response\EmpresaJrPublicaResponseDTO.class
 br\nite\newsly\controller\ColaboradorController.class
 br\nite\newsly\service\ColaboradorService.class
 br\nite\newsly\mapper\ConfigurationsMapper.class
@@ -126,6 +127,7 @@ br\nite\newsly\dto\request\DiretorDiretoriaRequestDTO.class
 br\nite\newsly\entity\Gestor.class
 br\nite\newsly\mapper\GestorMapperImpl.class
 br\nite\newsly\service\GestorService.class
+br\nite\newsly\controller\HealthController.class
 br\nite\newsly\mapper\DiretoriaMapper.class
 br\nite\newsly\mapper\ResponsavelMapperImpl.class
 br\nite\newsly\dto\response\DeduplicacaoResponseDTO.class

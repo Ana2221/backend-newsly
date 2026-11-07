@@ -91,6 +91,7 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios", "/usuarios/login", "/responsaveis")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/noticias", "/noticias/**", "/empresas", "/empresas/**")

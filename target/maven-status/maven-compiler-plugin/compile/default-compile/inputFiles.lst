@@ -9,10 +9,10 @@ C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\EmpresaJrController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\FuncaoController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\GestorController.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\HealthController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\NoticiaController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\ResponsavelController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\SolicitacaoController.java
-C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\controller\UsuarioController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\request\ColaboradorRequestDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\request\ComentarioRequestDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\request\ConfigurationsRequestDTO.java
@@ -49,6 +49,7 @@ C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\SolicitacaoResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\UsuarioResponseDTO.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\response\UsuarioTipadoResponse.java
+C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\dto\UsuarioController.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\entity\Colaborador.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\entity\Comentario.java
 C:\Users\Kassia\OneDrive\Documentos\backend-newsly\src\main\java\br\nite\newsly\entity\Configurations.java
