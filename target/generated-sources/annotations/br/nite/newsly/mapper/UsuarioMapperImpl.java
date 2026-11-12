@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-07T16:11:42-0300",
-    comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.5 (Eclipse Adoptium)"
+    date = "2026-11-12T19:08:10-0300",
+    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.200.v20261008-1115, environment: Java 25.0.4.1 (Eclipse Adoptium)"
 )
 @Component
 public class UsuarioMapperImpl implements UsuarioMapper {
@@ -47,9 +47,9 @@ public class UsuarioMapperImpl implements UsuarioMapper {
 
         Usuario usuario = new Usuario();
 
+        usuario.setContato( contatoMapper.toEntity( dto.contato() ) );
         usuario.setNome( dto.nome() );
         usuario.setSenha( dto.senha() );
-        usuario.setContato( contatoMapper.toEntity( dto.contato() ) );
 
         return usuario;
     }
@@ -60,17 +60,17 @@ public class UsuarioMapperImpl implements UsuarioMapper {
             return;
         }
 
-        if ( dto.nome() != null ) {
-            entity.setNome( dto.nome() );
-        }
-        if ( dto.senha() != null ) {
-            entity.setSenha( dto.senha() );
-        }
         if ( dto.contato() != null ) {
             if ( entity.getContato() == null ) {
                 entity.setContato( new Contato() );
             }
             contatoMapper.updateEntity( dto.contato(), entity.getContato() );
+        }
+        if ( dto.nome() != null ) {
+            entity.setNome( dto.nome() );
+        }
+        if ( dto.senha() != null ) {
+            entity.setSenha( dto.senha() );
         }
     }
 }
