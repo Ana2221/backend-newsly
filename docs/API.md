@@ -494,20 +494,27 @@ Upload da imagem da notícia.
 ### POST `/solicitacoes`
 Responsável envia os dados completos da notícia. A API cria somente uma solicitação `PENDENTE`; a notícia ainda não existe e só será criada se um gestor aceitar.
 
-**Request Body:**
-```json
-{
-  "responsavelId": 1,
-  "titulo": "Nova parceria firmada",
-  "conteudo": "A empresa firmou uma nova parceria...",
-  "publicadaEm": "2026-08-17T10:00:00",
-  "empresaId": 1
-}
-```
+**Content-Type:** `multipart/form-data`
+
+Campos: `responsavelId`, `titulo`, `conteudo`, `publicadaEm` (formato `2026-08-17T10:00:00`), `empresaId` e `arquivo` (opcional, arquivo de imagem). O campo `arquivo` é salvo com a solicitação e associado à notícia quando ela é aprovada.
+A chamada em JSON continua disponível para submissões sem imagem.
 
 **Responses:** `201` — `SolicitacaoResponseDTO`
-Na resposta pendente, `noticiaId` é `null`; título, conteúdo, data e empresa vêm dos dados submetidos. Após aceitar, `noticiaId` aponta para a notícia recém-criada. Ao recusar ou cancelar, nenhuma notícia é criada.
+Na resposta pendente, `noticiaId` é `null`; título, conteúdo, imagem (`noticiaImagemUrl`), data e empresa vêm dos dados submetidos. Após aceitar, `noticiaId` aponta para a notícia recém-criada. Ao recusar ou cancelar, nenhuma notícia é criada.
 Não envie `gestorId`: a solicitação entra na fila compartilhada. O gestor que aprovar ou recusar será registrado em `gestorId` na resposta.
+
+Exemplo de envio pelo frontend:
+```javascript
+const formData = new FormData();
+formData.append("responsavelId", "1");
+formData.append("titulo", "Nova parceria firmada");
+formData.append("conteudo", "A empresa firmou uma nova parceria...");
+formData.append("publicadaEm", "2026-08-17T10:00:00");
+formData.append("empresaId", "1");
+formData.append("arquivo", imagem);
+
+fetch("/solicitacoes", { method: "POST", body: formData });
+```
 
 ### PATCH `/solicitacoes/{id}/aceitar` — Gestor aceita — `200`
 ### PATCH `/solicitacoes/{id}/recusar` — Gestor recusa (body opcional com `motivoRecusa`) — `200`

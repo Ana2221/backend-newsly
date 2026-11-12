@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-12T19:08:11-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.200.v20261008-1115, environment: Java 25.0.4.1 (Eclipse Adoptium)"
+    date = "2026-11-12T20:22:28-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.5 (Eclipse Adoptium)"
 )
 @Component
 public class GestorMapperImpl implements GestorMapper {
@@ -61,9 +61,9 @@ public class GestorMapperImpl implements GestorMapper {
 
         Gestor gestor = new Gestor();
 
-        gestor.setContato( contatoMapper.toEntity( dto.contato() ) );
         gestor.setNome( dto.nome() );
         gestor.setSenha( dto.senha() );
+        gestor.setContato( contatoMapper.toEntity( dto.contato() ) );
         List<Permissao> list = dto.permissoes();
         if ( list != null ) {
             gestor.setPermissoes( new ArrayList<Permissao>( list ) );
@@ -80,17 +80,17 @@ public class GestorMapperImpl implements GestorMapper {
             return;
         }
 
-        if ( dto.contato() != null ) {
-            if ( entity.getContato() == null ) {
-                entity.setContato( new Contato() );
-            }
-            contatoMapper.updateEntity( dto.contato(), entity.getContato() );
-        }
         if ( dto.nome() != null ) {
             entity.setNome( dto.nome() );
         }
         if ( dto.senha() != null ) {
             entity.setSenha( dto.senha() );
+        }
+        if ( dto.contato() != null ) {
+            if ( entity.getContato() == null ) {
+                entity.setContato( new Contato() );
+            }
+            contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
         if ( entity.getPermissoes() != null ) {
             List<Permissao> list = dto.permissoes();

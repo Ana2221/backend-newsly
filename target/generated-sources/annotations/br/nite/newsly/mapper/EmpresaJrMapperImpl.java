@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-12T19:08:11-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.200.v20261008-1115, environment: Java 25.0.4.1 (Eclipse Adoptium)"
+    date = "2026-11-12T20:22:27-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.5 (Eclipse Adoptium)"
 )
 @Component
 public class EmpresaJrMapperImpl implements EmpresaJrMapper {
@@ -84,11 +84,11 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
 
         EmpresaJr empresaJr = new EmpresaJr();
 
-        empresaJr.setCnpj( dto.cnpj() );
-        empresaJr.setConfigurations( configurationsMapper.toEntity( dto.configurations() ) );
-        empresaJr.setContato( contatoMapper.toEntity( dto.contato() ) );
-        empresaJr.setDescricao( dto.descricao() );
         empresaJr.setNome( dto.nome() );
+        empresaJr.setCnpj( dto.cnpj() );
+        empresaJr.setDescricao( dto.descricao() );
+        empresaJr.setContato( contatoMapper.toEntity( dto.contato() ) );
+        empresaJr.setConfigurations( configurationsMapper.toEntity( dto.configurations() ) );
 
         return empresaJr;
     }
@@ -99,14 +99,14 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
             return;
         }
 
+        if ( dto.nome() != null ) {
+            entity.setNome( dto.nome() );
+        }
         if ( dto.cnpj() != null ) {
             entity.setCnpj( dto.cnpj() );
         }
-        if ( dto.configurations() != null ) {
-            if ( entity.getConfigurations() == null ) {
-                entity.setConfigurations( new Configurations() );
-            }
-            configurationsMapper.updateEntity( dto.configurations(), entity.getConfigurations() );
+        if ( dto.descricao() != null ) {
+            entity.setDescricao( dto.descricao() );
         }
         if ( dto.contato() != null ) {
             if ( entity.getContato() == null ) {
@@ -114,11 +114,11 @@ public class EmpresaJrMapperImpl implements EmpresaJrMapper {
             }
             contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
-        if ( dto.descricao() != null ) {
-            entity.setDescricao( dto.descricao() );
-        }
-        if ( dto.nome() != null ) {
-            entity.setNome( dto.nome() );
+        if ( dto.configurations() != null ) {
+            if ( entity.getConfigurations() == null ) {
+                entity.setConfigurations( new Configurations() );
+            }
+            configurationsMapper.updateEntity( dto.configurations(), entity.getConfigurations() );
         }
     }
 

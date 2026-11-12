@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-12T19:08:08-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.200.v20261008-1115, environment: Java 25.0.4.1 (Eclipse Adoptium)"
+    date = "2026-11-12T20:22:28-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.5 (Eclipse Adoptium)"
 )
 @Component
 public class FuncaoMapperImpl implements FuncaoMapper {
@@ -44,8 +44,8 @@ public class FuncaoMapperImpl implements FuncaoMapper {
 
         Funcao funcao = new Funcao();
 
-        funcao.setDescricao( dto.descricao() );
         funcao.setNome( dto.nome() );
+        funcao.setDescricao( dto.descricao() );
 
         return funcao;
     }
@@ -56,11 +56,11 @@ public class FuncaoMapperImpl implements FuncaoMapper {
             return;
         }
 
-        if ( dto.descricao() != null ) {
-            entity.setDescricao( dto.descricao() );
-        }
         if ( dto.nome() != null ) {
             entity.setNome( dto.nome() );
+        }
+        if ( dto.descricao() != null ) {
+            entity.setDescricao( dto.descricao() );
         }
     }
 

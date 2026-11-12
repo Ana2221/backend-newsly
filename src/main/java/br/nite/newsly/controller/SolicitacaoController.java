@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,11 +23,25 @@ public class SolicitacaoController {
 
     private final SolicitacaoService service;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('RESPONSAVEL') or hasRole('ADMIN')")
-    public ResponseEntity<SolicitacaoResponseDTO> enviar(
+    public ResponseEntity<SolicitacaoResponseDTO> enviarJson(
             @Valid @RequestBody SolicitacaoRequestDTO dto,
             Authentication authentication) {
+        return criarSolicitacao(dto, null, authentication);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('RESPONSAVEL') or hasRole('ADMIN')")
+    public ResponseEntity<SolicitacaoResponseDTO> enviar(
+            @Valid @ModelAttribute SolicitacaoRequestDTO dto,
+            @RequestParam(value = "arquivo", required = false) MultipartFile arquivo,
+            Authentication authentication) {
+        return criarSolicitacao(dto, arquivo, authentication);
+    }
+
+    private ResponseEntity<SolicitacaoResponseDTO> criarSolicitacao(
+            SolicitacaoRequestDTO dto, MultipartFile arquivo, Authentication authentication) {
         Long responsavelId = hasRole(authentication, "ROLE_ADMIN")
                 ? dto.responsavelId()
                 : Long.valueOf(authentication.getName());
@@ -35,7 +51,7 @@ public class SolicitacaoController {
                 dto.conteudo(),
                 dto.publicadaEm(),
                 dto.empresaId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.enviar(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.enviar(request, arquivo));
     }
 
     @PatchMapping("/{id}/aceitar")

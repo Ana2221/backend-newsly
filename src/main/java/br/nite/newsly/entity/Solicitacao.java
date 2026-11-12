@@ -43,6 +43,9 @@ public class Solicitacao {
     @Column(name = "conteudo_submetido", columnDefinition = "TEXT")
     private String conteudoSubmetido;
 
+    @Column(name = "imagem_submetida", length = 500)
+    private String imagemSubmetida;
+
     @Column(name = "publicada_em_submetida")
     private LocalDateTime publicadaEmSubmetida;
 

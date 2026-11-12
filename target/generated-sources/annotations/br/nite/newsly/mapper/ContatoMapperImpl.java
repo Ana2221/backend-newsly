@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-12T19:08:12-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.200.v20261008-1115, environment: Java 25.0.4.1 (Eclipse Adoptium)"
+    date = "2026-11-12T20:22:26-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.5 (Eclipse Adoptium)"
 )
 @Component
 public class ContatoMapperImpl implements ContatoMapper {
@@ -39,8 +39,8 @@ public class ContatoMapperImpl implements ContatoMapper {
 
         Contato contato = new Contato();
 
-        contato.setEmail( dto.email() );
         contato.setTelefone( dto.telefone() );
+        contato.setEmail( dto.email() );
 
         return contato;
     }
@@ -51,11 +51,11 @@ public class ContatoMapperImpl implements ContatoMapper {
             return;
         }
 
-        if ( dto.email() != null ) {
-            entity.setEmail( dto.email() );
-        }
         if ( dto.telefone() != null ) {
             entity.setTelefone( dto.telefone() );
+        }
+        if ( dto.email() != null ) {
+            entity.setEmail( dto.email() );
         }
     }
 }

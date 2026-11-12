@@ -8,9 +8,11 @@ import br.nite.newsly.entity.Responsavel;
 import br.nite.newsly.entity.Solicitacao;
 import br.nite.newsly.enums.StatusSolicitacao;
 import br.nite.newsly.repository.SolicitacaoRepository;
+import br.nite.newsly.service.storage.ArmazenamentoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ class SolicitacaoServiceSecurityTest {
     private ResponsavelService responsavelService;
     private GestorService gestorService;
     private NoticiaService noticiaService;
+    private ArmazenamentoService armazenamentoService;
     private SolicitacaoService service;
     private Solicitacao solicitacao;
 
@@ -33,8 +36,9 @@ class SolicitacaoServiceSecurityTest {
         responsavelService = mock(ResponsavelService.class);
         gestorService = mock(GestorService.class);
         noticiaService = mock(NoticiaService.class);
+        armazenamentoService = mock(ArmazenamentoService.class);
         service = new SolicitacaoService(
-                repository, responsavelService, gestorService, noticiaService);
+                repository, responsavelService, gestorService, noticiaService, armazenamentoService);
 
         Responsavel responsavel = new Responsavel();
         responsavel.setId(8L);
@@ -76,7 +80,22 @@ class SolicitacaoServiceSecurityTest {
         assertEquals("Conteúdo da notícia", response.noticiaConteudo());
         verify(repository).save(any(Solicitacao.class));
         verifyNoInteractions(gestorService);
+        verifyNoInteractions(armazenamentoService);
         verify(noticiaService, never()).criarAprovada(any());
+    }
+
+    @Test
+    void submissaoArmazenaImagemEIncluiUrlNaResposta() {
+        MockMultipartFile arquivo = new MockMultipartFile(
+                "arquivo", "noticia.jpg", "image/jpeg", new byte[]{1, 2, 3});
+        when(armazenamentoService.salvar(arquivo, "solicitacoes"))
+                .thenReturn("/uploads/solicitacoes/noticia.jpg");
+
+        var response = service.enviar(new SolicitacaoRequestDTO(
+                8L, "Nova parceria", "Conteúdo da notícia", java.time.LocalDateTime.now(), 7L), arquivo);
+
+        assertEquals("/uploads/solicitacoes/noticia.jpg", response.noticiaImagemUrl());
+        verify(armazenamentoService).salvar(arquivo, "solicitacoes");
     }
 
     @Test
@@ -86,6 +105,7 @@ class SolicitacaoServiceSecurityTest {
         solicitacao.getEmpresa().setId(7L);
         solicitacao.setTituloSubmetido("Submetida");
         solicitacao.setConteudoSubmetido("Conteúdo submetido");
+        solicitacao.setImagemSubmetida("/uploads/solicitacoes/noticia.jpg");
         solicitacao.setPublicadaEmSubmetida(java.time.LocalDateTime.now());
         Noticia noticiaCriada = new Noticia();
         noticiaCriada.setId(30L);
@@ -101,6 +121,8 @@ class SolicitacaoServiceSecurityTest {
         assertEquals(30L, response.noticiaId());
         assertEquals(6L, response.gestorId());
         assertEquals(StatusSolicitacao.ACEITA, response.status());
+        assertEquals("/uploads/solicitacoes/noticia.jpg", noticiaCriada.getImagemUrl());
+        assertEquals("/uploads/solicitacoes/noticia.jpg", response.noticiaImagemUrl());
         verify(noticiaService).criarAprovada(any());
     }
 

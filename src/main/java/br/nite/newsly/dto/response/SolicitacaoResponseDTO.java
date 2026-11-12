@@ -15,6 +15,7 @@ public record SolicitacaoResponseDTO(
         Long noticiaId,
         String noticiaTitulo,
         String noticiaConteudo,
+        String noticiaImagemUrl,
         LocalDateTime noticiaPublicadaEm,
         Long empresaId,
         String empresaNome,

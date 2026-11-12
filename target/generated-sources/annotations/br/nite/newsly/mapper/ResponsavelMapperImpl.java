@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-11-12T19:08:09-0300",
-    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.200.v20261008-1115, environment: Java 25.0.4.1 (Eclipse Adoptium)"
+    date = "2026-11-12T20:22:28-0300",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.5 (Eclipse Adoptium)"
 )
 @Component
 public class ResponsavelMapperImpl implements ResponsavelMapper {
@@ -64,9 +64,9 @@ public class ResponsavelMapperImpl implements ResponsavelMapper {
 
         Responsavel responsavel = new Responsavel();
 
-        responsavel.setContato( contatoMapper.toEntity( dto.contato() ) );
         responsavel.setNome( dto.nome() );
         responsavel.setSenha( dto.senha() );
+        responsavel.setContato( contatoMapper.toEntity( dto.contato() ) );
         List<Permissao> list = dto.permissoes();
         if ( list != null ) {
             responsavel.setPermissoes( new ArrayList<Permissao>( list ) );
@@ -83,17 +83,17 @@ public class ResponsavelMapperImpl implements ResponsavelMapper {
             return;
         }
 
-        if ( dto.contato() != null ) {
-            if ( entity.getContato() == null ) {
-                entity.setContato( new Contato() );
-            }
-            contatoMapper.updateEntity( dto.contato(), entity.getContato() );
-        }
         if ( dto.nome() != null ) {
             entity.setNome( dto.nome() );
         }
         if ( dto.senha() != null ) {
             entity.setSenha( dto.senha() );
+        }
+        if ( dto.contato() != null ) {
+            if ( entity.getContato() == null ) {
+                entity.setContato( new Contato() );
+            }
+            contatoMapper.updateEntity( dto.contato(), entity.getContato() );
         }
         if ( entity.getPermissoes() != null ) {
             List<Permissao> list = dto.permissoes();

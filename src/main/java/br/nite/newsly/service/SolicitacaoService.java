@@ -13,10 +13,12 @@ import br.nite.newsly.enums.StatusSolicitacao;
 import br.nite.newsly.exception.BusinessException;
 import br.nite.newsly.exception.ResourceNotFoundException;
 import br.nite.newsly.repository.SolicitacaoRepository;
+import br.nite.newsly.service.storage.ArmazenamentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,9 +31,15 @@ public class SolicitacaoService {
     private final ResponsavelService responsavelService;
     private final GestorService gestorService;
     private final NoticiaService noticiaService;
+    private final ArmazenamentoService armazenamentoService;
 
     @Transactional
     public SolicitacaoResponseDTO enviar(SolicitacaoRequestDTO dto) {
+        return enviar(dto, null);
+    }
+
+    @Transactional
+    public SolicitacaoResponseDTO enviar(SolicitacaoRequestDTO dto, MultipartFile arquivo) {
         Responsavel responsavel = responsavelService.buscarEntidade(dto.responsavelId());
         EmpresaJr empresa = noticiaService.buscarEmpresaParaSubmissao(dto.empresaId());
 
@@ -41,6 +49,9 @@ public class SolicitacaoService {
         entity.setTituloSubmetido(dto.titulo());
         entity.setConteudoSubmetido(dto.conteudo());
         entity.setPublicadaEmSubmetida(dto.publicadaEm());
+        if (arquivo != null && !arquivo.isEmpty()) {
+            entity.setImagemSubmetida(armazenamentoService.salvar(arquivo, "solicitacoes"));
+        }
         entity.setStatus(StatusSolicitacao.PENDENTE);
         entity.setCriadaEm(LocalDateTime.now());
 
@@ -66,7 +77,9 @@ public class SolicitacaoService {
                     entity.getConteudoSubmetido(),
                     entity.getPublicadaEmSubmetida(),
                     entity.getEmpresa().getId());
-            entity.setNoticia(noticiaService.criarAprovada(noticiaRequest));
+            Noticia noticia = noticiaService.criarAprovada(noticiaRequest);
+            noticia.setImagemUrl(entity.getImagemSubmetida());
+            entity.setNoticia(noticia);
         } else {
             noticiaService.aprovarPublicacao(entity.getNoticia().getId());
         }
@@ -173,6 +186,7 @@ public class SolicitacaoService {
                 s.getNoticia() != null ? s.getNoticia().getId() : null,
                 s.getNoticia() != null ? s.getNoticia().getTitulo() : s.getTituloSubmetido(),
                 s.getNoticia() != null ? s.getNoticia().getConteudo() : s.getConteudoSubmetido(),
+                s.getNoticia() != null ? s.getNoticia().getImagemUrl() : s.getImagemSubmetida(),
                 s.getNoticia() != null ? s.getNoticia().getPublicadaEm() : s.getPublicadaEmSubmetida(),
                 s.getEmpresa() != null ? s.getEmpresa().getId()
                         : s.getNoticia() != null ? s.getNoticia().getEmpresa().getId() : null,

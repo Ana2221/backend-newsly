@@ -39,16 +39,7 @@ Somente solicitações com status `PENDENTE` podem ser modificadas.
 POST /solicitacoes
 ```
 
-**Request Body:**
-```json
-{
-  "responsavelId": 1,
-  "titulo": "Nova parceria firmada",
-  "conteudo": "A empresa firmou uma nova parceria...",
-  "publicadaEm": "2026-08-17T10:00:00",
-  "empresaId": 1
-}
-```
+**Content-Type:** `multipart/form-data`
 
 | Campo | Tipo | Obrigatório |
 |-------|------|-------------|
@@ -57,6 +48,10 @@ POST /solicitacoes
 | `conteudo` | `String` | ✅ |
 | `publicadaEm` | `LocalDateTime` | ✅ |
 | `empresaId` | `Long` | ✅ |
+| `arquivo` | `MultipartFile` | Não |
+
+O campo `arquivo` aceita a imagem da notícia. A imagem fica associada à solicitação e, ao ser aprovada, passa a compor a notícia criada.
+O envio anterior em JSON continua suportado quando não houver arquivo.
 
 **Response `201`:**
 ```json
@@ -69,6 +64,7 @@ POST /solicitacoes
   "noticiaId": null,
   "noticiaTitulo": "Nova parceria firmada",
   "noticiaConteudo": "A empresa firmou uma nova parceria...",
+  "noticiaImagemUrl": "/uploads/solicitacoes/a1b2c3d4-uuid.jpg",
   "noticiaPublicadaEm": "2026-08-17T10:00:00",
   "empresaId": 1,
   "empresaNome": "Nite Jr",
@@ -222,6 +218,7 @@ Qualquer gestor pode aprovar ou recusar uma solicitação da fila.
 | `noticiaId` | `Long` | ❌ | ID da notícia; preenchido somente após aprovação |
 | `noticiaTitulo` | `String` | ✅ | Título submetido |
 | `noticiaConteudo` | `String` | ✅ | Conteúdo submetido |
+| `noticiaImagemUrl` | `String` | ❌ | URL da imagem submetida |
 | `noticiaPublicadaEm` | `LocalDateTime` | ✅ | Data de publicação submetida |
 | `empresaId` | `Long` | ✅ | Empresa da notícia |
 | `empresaNome` | `String` | ✅ | Nome da empresa |
